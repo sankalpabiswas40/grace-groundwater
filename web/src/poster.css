@@ -1,0 +1,68 @@
+/* A1 portrait print poster: 594 x 841 mm. All sizes in mm so PDF and PNG match. */
+@page { size: 594mm 841mm; margin: 0; }
+:root {
+  --paper: #f6f4ee; --ink: #14202e; --muted: #55606e; --line: #c9c5b8; --accent: #0b6e99; --navy: #06101f;
+  --jpl: #0b5ea8; --csr: #b0541a; --gap: #dcd9cf;
+  --sans: "IBM Plex Sans", Arial, sans-serif; --mono: "IBM Plex Mono", Consolas, monospace;
+  --serif: "Source Serif 4 Variable", Georgia, serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #888; }
+.sheet { width: 594mm; height: 841mm; background: var(--paper); color: var(--ink); font: 400 7.1mm/1.42 var(--sans); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+p { margin: 0 0 3mm; }
+h1, h2, h3 { margin: 0; font-family: var(--serif); font-weight: 600; line-height: 1.08; }
+h2 { font-size: 11.5mm; margin-bottom: 3.5mm; padding-top: 3mm; border-top: .7mm solid var(--ink); }
+h3 { font-size: 8.4mm; margin: 4mm 0 2mm; }
+em { font-style: italic; }
+.note { font-size: 5.4mm; color: var(--muted); line-height: 1.35; }
+.eq { font: 500 7.6mm/1.3 var(--mono); background: #ece9df; padding: 3mm 4mm; border-left: 1.2mm solid var(--accent); }
+.eq b { font-weight: 600; }
+
+.band { height: 150mm; flex: none; background: var(--navy) right center / cover no-repeat; color: #fff; position: relative; display: flex; align-items: center; }
+.band-text { padding: 0 0 0 26mm; width: 56%; }
+.kicker { font: italic 500 8.6mm var(--serif); color: #b9c8db; margin-bottom: 4mm; }
+h1 { font-size: 30mm; font-weight: 560; letter-spacing: -.5mm; }
+.deck { font: 400 10.2mm/1.25 var(--serif); margin: 6mm 0 9mm; color: #dfe7f1; }
+.authors { font-weight: 600; font-size: 7.8mm; margin-bottom: 1.5mm; }
+.affil { font-size: 6.4mm; color: #b9c8db; margin: 0; }
+.band-credit { position: absolute; right: 8mm; bottom: 4mm; margin: 0; font-size: 3.9mm; color: #9fb0c6; }
+
+.finding { flex: none; display: flex; align-items: center; gap: 12mm; padding: 6mm 26mm 5mm; border-bottom: .35mm solid var(--line); }
+.finding-num { font: 600 32mm/0.9 var(--serif); color: var(--accent); margin: 0; white-space: nowrap; }
+.finding-num small { display: block; font: 600 8.6mm/1.2 var(--sans); color: var(--ink); margin-top: 2.5mm; }
+.finding-text { font: 500 13.2mm/1.2 var(--serif); margin-bottom: 3mm; }
+.finding-sub { font-size: 6.6mm; color: var(--muted); margin: 0; }
+
+.cols { display: grid; gap: 12mm; padding: 0 26mm; }
+.three { grid-template-columns: repeat(3, 1fr); flex: none; margin-top: 8mm; }
+.schem { width: 100%; height: auto; display: block; margin-bottom: 2.5mm; }
+.schem text { font: 6px var(--sans); fill: var(--ink); }
+
+.figrow { grid-template-columns: 1.42fr 1fr; flex: none; margin-top: 8mm; align-items: start; }
+.fig { margin: 0; }
+.fig figcaption { font-size: 5.3mm; line-height: 1.34; color: var(--muted); margin-top: 2.5mm; }
+.fig figcaption b { color: var(--ink); }
+.plot svg { display: block; width: 100%; height: auto; }
+.plot text { font-family: var(--mono); fill: var(--ink); }
+#p-map { height: 168mm; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 6.1mm; }
+.tbl th { text-align: left; font-weight: 600; border-bottom: .5mm solid var(--ink); padding: 1.5mm 2mm 1.5mm 0; }
+.tbl td { border-bottom: .25mm solid var(--line); padding: 1.7mm 2mm 1.7mm 0; }
+.tbl td.num, .tbl th.num { text-align: right; font-family: var(--mono); white-space: nowrap; padding-right: 0; }
+.tbl tr.hl td { font-weight: 600; }
+.minis { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 4mm; }
+.minis .plot { height: 40mm; }
+.bar { height: 9mm; margin-top: 1.5mm; }
+
+.curve { flex: none; padding: 0 26mm; margin-top: 7mm; }
+#p-curve { height: 92mm; }
+
+.foot { grid-template-columns: 1.15fr 1.05fr .95fr; margin-top: 7mm; flex: 1 1 auto; align-items: start; }
+.foot ul { margin: 0; padding-left: 6mm; font-size: 6.1mm; line-height: 1.36; }
+.foot li { margin-bottom: 1.6mm; }
+.refs { font-size: 5.2mm !important; }
+.qrbox { display: flex; gap: 6mm; align-items: flex-start; border-top: .7mm solid var(--ink); padding-top: 4mm; }
+.qrbox img { width: 62mm; height: 62mm; flex: none; background: #fff; }
+.qr-title { font: 600 10mm/1.1 var(--serif); margin-bottom: 2.5mm; }
+.qrbox p { font-size: 5.9mm; line-height: 1.34; }
+.url { font: 500 4.6mm var(--mono) !important; word-break: break-all; color: var(--accent); }

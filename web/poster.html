@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Poster (A1): Weighing Delhi's Water from Space</title>
+<link rel="stylesheet" href="/src/poster.css">
+</head>
+<body>
+<article class="sheet" id="sheet">
+  <header class="band">
+    <div class="band-text">
+      <p class="kicker">Satellite gravimetry &middot; GRACE and GRACE-FO</p>
+      <h1>Weighing Delhi's water from space</h1>
+      <p class="deck">How twin satellites measure groundwater loss in north-west India using gravity</p>
+      <p class="authors">Sankalpa Biswas, Sumit Kumar Singh, Rajat Kumar, Debraj Roy, Akshat Shrivare</p>
+      <p class="affil">BSc (Hons) Geology &middot; Department of Geology, Hansraj College, University of Delhi</p>
+    </div>
+    <p class="band-credit">Earth imagery: NASA Blue Marble and Black Marble. Spacecraft model: NASA/JPL-Caltech. Size and orbit not to scale.</p>
+  </header>
+
+  <section class="finding">
+    <p class="finding-num"><span id="p-km3"></span><small>km&sup3; per year</small></p>
+    <div>
+      <p class="finding-text">of groundwater is being lost from Punjab, Haryana, Delhi and Rajasthan, <span id="p-period"></span>.</p>
+      <p class="finding-sub" id="p-sub"></p>
+    </div>
+  </section>
+
+  <section class="cols three">
+    <div>
+      <h2>1 &nbsp;Gravity changes with water</h2>
+      <p>Gravity is slightly stronger above more mass. Water is heavy, so a full aquifer pulls a little harder than an empty one. For a wide flat layer of water of thickness <i>h</i> (the Bouguer slab):</p>
+      <p class="eq">&Delta;g = 2&pi;G&rho;h &nbsp;&rArr;&nbsp; <b id="p-bouguer"></b> &micro;Gal per cm of water</p>
+      <p class="note">Earth's gravity is about 980,000,000 &micro;Gal, so the signal is tiny but measurable.</p>
+    </div>
+    <div>
+      <h2>2 &nbsp;Two satellites feel the pull</h2>
+      <svg class="schem" viewBox="0 0 300 96" aria-hidden="true">
+        <rect y="70" width="300" height="26" fill="#cdb98f"/><rect y="70" width="300" height="3" fill="#6b8f4e"/>
+        <circle cx="150" cy="84" r="9" fill="#0b6e99"/>
+        <line x1="96" y1="28" x2="204" y2="28" stroke="#0b6e99" stroke-width="1.6"/>
+        <g fill="#14202e"><path d="M78 34h30l-6-13H84z"/><path d="M192 34h30l-6-13h-18z"/></g>
+        <g stroke="#14202e" stroke-width=".7" stroke-dasharray="2 2" fill="none"><path d="M93 36 144 76"/><path d="M207 36 156 76"/></g>
+        <text x="93" y="14" text-anchor="middle">follower</text><text x="207" y="14" text-anchor="middle">leader</text>
+        <text x="150" y="22" text-anchor="middle">220 km, measured to about a micron</text>
+        <text x="172" y="88">extra mass</text>
+      </svg>
+      <p>The pair orbits about 500 km up. Extra mass ahead pulls the leader first, so the gap grows, then shrinks as the follower catches up. A month of such measurements gives one gravity map of the Earth.</p>
+      <p class="note">Schematic, not to scale. Distances from NASA/JPL.</p>
+    </div>
+    <div>
+      <h2>3 &nbsp;From gravity to groundwater</h2>
+      <p>GRACE weighs <em>all</em> the water in a region (total water storage, TWS). We subtract the parts a land model can estimate:</p>
+      <p class="eq">&Delta;GWS = &Delta;TWS &minus; (soil moisture + snow + canopy water)</p>
+      <p>TWS: JPL mascons RL06.3Mv04, checked against CSR mascons. Land model: NASA GLDAS-2.1 Noah. All values are anomalies relative to 2004&ndash;2009, area-weighted on the sphere. Missing months are left empty, never filled in.</p>
+    </div>
+  </section>
+
+  <section class="cols figrow">
+    <figure class="fig map">
+      <div id="p-map" class="plot"></div>
+      <figcaption><b>Figure 1.</b> Groundwater trend, <span class="p-per"></span>, in mm of water per year (JPL mascons minus GLDAS). Thick outline: our analysis region. The square blocks are real: GRACE resolves about 300 km, so each 3&deg; mascon moves as one. State boundaries: DataMeet (CC BY 4.0).</figcaption>
+    </figure>
+    <div class="side">
+      <h2>4 &nbsp;Results</h2>
+      <table class="tbl" id="p-table"></table>
+      <p class="note" id="p-se-note"></p>
+      <h3>Compared with the first study</h3>
+      <p id="p-rodell"></p>
+      <figure class="fig mini">
+        <div class="minis"><div id="p-mini-a" class="plot"></div><div id="p-mini-b" class="plot"></div></div>
+        <div id="p-mini-bar" class="bar"></div>
+        <figcaption><b>Figure 3.</b> The monsoon in the data: total water storage before (May 2010) and during (August 2010) the monsoon, cm of water relative to 2004&ndash;2009.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="curve">
+    <figure class="fig">
+      <div id="p-curve" class="plot"></div>
+      <figcaption><b>Figure 2.</b> Groundwater storage anomaly for north-west India from two independent GRACE solutions. Every year the monsoon refills the ground; underneath, the level falls. Dashed line: least-squares trend fitted together with annual and semi-annual cycles. Grey band: no data between the end of GRACE (2017) and the start of GRACE-FO (2018).</figcaption>
+    </figure>
+  </section>
+
+  <section class="cols foot">
+    <div>
+      <h2>5 &nbsp;What to keep in mind</h2>
+      <ul>
+        <li>GRACE sees features about 300 km across; our region is only about a dozen independent measurements.</li>
+        <li>Groundwater is what is left after subtracting a model, so it carries the model's errors. Rivers and reservoirs are not removed.</li>
+        <li>The &plusmn; values are formal fit errors and a lower bound; the spread between solutions is the more honest guide.</li>
+        <li>A straight line simplifies the record: the fall is steady to about 2017 and flatter, with large swings, afterwards.</li>
+        <li>The satellites show <em>that</em> water is lost, not who used it. Rodell et al. (2009) attribute the loss mainly to pumping for irrigation.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Data and references</h2>
+      <ul class="refs">
+        <li>JPL GRACE/GRACE-FO Mascons, CRI filtered, RL06.3Mv04. NASA PO.DAAC. doi:10.5067/TEMSC-3JC634</li>
+        <li>CSR GRACE/GRACE-FO RL06.3 Mascons. Univ. of Texas. doi:10.15781/cgq9-nh24</li>
+        <li>GLDAS Noah L4 monthly 0.25&deg; V2.1. NASA GES DISC. doi:10.5067/SXAVCZFAQLNO</li>
+        <li>Rodell, Velicogna &amp; Famiglietti (2009). Nature 460, 999&ndash;1002. doi:10.1038/nature08238</li>
+        <li>Watkins et al. (2015). JGR Solid Earth. doi:10.1002/2014JB011547</li>
+        <li>Save, Bettadpur &amp; Tapley (2016). JGR Solid Earth. doi:10.1002/2016JB013007</li>
+      </ul>
+      <p class="note">Not endorsed by NASA, JPL or any agency. All numbers and figures on this poster are computed from the data products above; code and methods are on the site.</p>
+    </div>
+    <div class="qrbox">
+      <img src="/poster-qr.svg" alt="QR code for the interactive site" id="p-qr">
+      <div>
+        <p class="qr-title">Explore it yourself</p>
+        <p>Scan for the interactive site: play the map month by month, spin India in 3D, and see every equation and data source.</p>
+        <p class="url">sankalpabiswas40.github.io/grace-groundwater</p>
+      </div>
+    </div>
+  </section>
+</article>
+<script type="module" src="/src/poster.ts"></script>
+</body>
+</html>

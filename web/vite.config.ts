@@ -4,6 +4,6 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   base: './',
   resolve: { preserveSymlinks: true },
-  build: { target: 'es2020', chunkSizeWarningLimit: 900 },
+  build: { target: 'es2020', chunkSizeWarningLimit: 900, rollupOptions: { input: { main: 'index.html', poster: 'poster.html' } } },
   test: { include: ['tests/unit/**/*.test.ts'] },
 });
