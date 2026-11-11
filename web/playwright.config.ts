@@ -6,7 +6,7 @@ export default defineConfig({
   workers: 2,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: process.env.LIVE_URL ?? 'http://localhost:4173/',
     launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
   },
   webServer: { command: 'npm run preview', url: 'http://localhost:4173', reuseExistingServer: true, timeout: 60000 },

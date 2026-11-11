@@ -8,7 +8,7 @@ function watchErrors(page: Page): string[] {
   return errors;
 }
 async function ready(page: Page, path = '/') {
-  await page.goto(path);
+  await page.goto('.' + path); // relative, so the tests also work on the live sub-path
   await page.waitForFunction(() => (window as unknown as { __ready?: boolean }).__ready === true, null, { timeout: 30000 });
 }
 const overflow = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
