@@ -2,6 +2,9 @@
 // Height and colour = water storage anomaly for the selected month.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { fmt, loadFrames, monthLabel, url } from './data';
 import { diverging } from './map';
 import { columnHeightUnits, COLUMN_BASE_CM, latLonToVec } from './physics';
@@ -71,11 +74,20 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
   // region outline (NW India) as a line just above the surface
   const outline = new THREE.Group();
   scene.add(outline);
+  const haloMat = new LineMaterial({ color: 0xffffff, linewidth: 7, depthTest: false, transparent: true });
+  const coreMat = new LineMaterial({ color: 0x111111, linewidth: 3.5, depthTest: false, transparent: true });
   fetch(url('geo/outlines.json')).then((r) => r.json()).then((o: { nw: GeoJSON.Polygon | GeoJSON.MultiPolygon }) => {
     const polys = o.nw.type === 'Polygon' ? [o.nw.coordinates] : o.nw.coordinates;
     polys.forEach((poly) => poly.forEach((ring) => {
+      if (ring.length < 12) return; // skip tiny enclave rings that only show as specks
       const pts = ring.map(([lo, la]) => new THREE.Vector3(...latLonToVec(la, lo)));
-      outline.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true, opacity: 0.9 })));
+      // thick line drawn twice (white halo under black) so it shows on pale columns and on dark ground
+      const flat = pts.flatMap((p) => [p.x, p.y, p.z]);
+      [haloMat, coreMat].forEach((mat, k) => {
+        const line = new Line2(new LineGeometry().setPositions(flat), mat);
+        line.renderOrder = 10 + k;
+        outline.add(line);
+      });
     }));
     dirty = true;
   }).catch(() => undefined);
@@ -146,6 +158,8 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
     if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
+    haloMat.resolution.set(w, h); coreMat.resolution.set(w, h);
+    haloMat.linewidth = w < 520 ? 5 : 7; coreMat.linewidth = w < 520 ? 2.5 : 3.5;
   };
   new ResizeObserver(resize).observe(stage);
   resize();
