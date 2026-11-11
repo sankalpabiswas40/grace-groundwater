@@ -220,7 +220,7 @@ export function initMethods(meta: Meta): void {
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe pipeline\\process.py
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe pipeline\\export.py
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe -m pytest pipeline\\tests</pre>
-  <p class="small muted">Data files generated ${meta.generated}. Code repository: <span id="repo-link">link added at deployment</span>.</p>`;
+  <p class="small muted">Data files generated ${meta.generated}. Code repository: <a href="https://github.com/sankalpabiswas40/grace-groundwater" rel="noopener">github.com/sankalpabiswas40/grace-groundwater</a>.</p>`;
   document.getElementById('methods-body')!.innerHTML = html;
 }
 
