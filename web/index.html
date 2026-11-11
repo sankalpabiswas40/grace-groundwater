@@ -25,7 +25,7 @@
   <a class="brand" href="#home" aria-label="Top of page">GRACE <span>&middot; NW India</span></a>
   <nav aria-label="Sections">
     <a href="#gravity">Gravity</a><a href="#satellites">Satellites</a><a href="#method">Method</a>
-    <a href="#map">Map</a><a href="#curve">Trend</a><a href="#why">Why</a><a href="#quiz">Quiz</a><a href="#methods">Methods</a>
+    <a href="#globe">3D</a><a href="#map">Map</a><a href="#curve">Trend</a><a href="#why">Why</a><a href="#quiz">Quiz</a><a href="#methods">Methods</a>
   </nav>
   <div class="tools">
     <label class="tier"><span class="sr">Quality</span>
@@ -169,6 +169,54 @@
       <summary>Go deeper: the subtraction</summary>
       <div class="tex" data-tex="\Delta GWS = \Delta TWS - \left(\Delta SM + \Delta SWE + \Delta CAN\right)"></div>
       <p>All terms are anomalies relative to January 2004 &ndash; December 2009, in cm of water. Soil moisture is the sum of GLDAS-2.1 Noah's four layers (0&ndash;200 cm). Surface water in rivers, canals and reservoirs is <b>not</b> removed, so it is still inside our "groundwater" number. Any error in the land model goes straight into the groundwater estimate.</p>
+    </details>
+  </div>
+</section>
+
+<!-- 3D COLUMNS (Part 5, chapter 5) -->
+<section id="globe" class="band globe-band">
+  <div class="wrap">
+    <p class="eyebrow">3D &middot; Diving onto India</p>
+    <h2>The water, standing on the globe</h2>
+    <p class="lead">Each column is one cell of the real GRACE grid. Taller and bluer means more water than the 2004&ndash;2009 average; shorter and browner means less. Press play and watch the monsoon rise and fall while north-west India slowly sinks.</p>
+    <div class="panel globe-ui">
+      <div class="toggles">
+        <div class="seg" role="group" aria-label="Quantity">
+          <button class="seg-btn on" data-gq="tws" aria-pressed="true">Total water</button>
+          <button class="seg-btn" data-gq="gws" aria-pressed="false">Groundwater</button>
+        </div>
+        <a class="btn linkbtn" href="#map">Flat map</a>
+      </div>
+      <div class="globe-stage" id="globe-stage">
+        <canvas id="globe-canvas" role="img" aria-label="3D view of north India with a column for each grid cell showing water storage anomaly"></canvas>
+        <div id="globe-nodata" class="nodata dark" hidden><b>No data</b><span id="globe-nodata-why"></span></div>
+        <div id="globe-fallback" class="nodata dark" hidden><b>3D view unavailable</b><span>This device or quality setting cannot show the 3D view. The <a href="#map" style="pointer-events:auto">flat map</a> shows the same data.</span></div>
+        <p class="badge globe-badge" id="globe-exag-out"></p>
+        <div id="globe-popup" class="popup" hidden role="dialog" aria-label="Column time series" style="right:8px;top:8px">
+          <button class="icon-btn close" id="globe-popup-close" aria-label="Close">&times;</button>
+          <p class="mono small" id="globe-popup-title"></p>
+          <svg id="globe-popup-svg" viewBox="0 0 280 120"></svg>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="globe-play" aria-label="Play">&#9654;</button>
+        <input id="globe-slider" type="range" min="0" max="1" value="0" aria-label="Month">
+        <output id="globe-month" class="mono month-out"></output>
+      </div>
+      <div class="controls">
+        <label for="globe-exag" class="small" style="flex:0 0 auto">Height exaggeration</label>
+        <input id="globe-exag" type="range" min="1" max="12" step="1" value="4">
+        <button class="btn" id="globe-explore" aria-pressed="false">Free explore: drag to rotate, pinch to zoom</button>
+      </div>
+    </div>
+    <details class="deeper">
+      <summary>Go deeper: how to read the columns</summary>
+      <ul>
+        <li>Columns stand on a base of 60 cm, so a cell at the 2004&ndash;2009 average is 60 cm &times; the exaggeration tall, and a cell 60 cm below average is flat. Height = (60 cm + anomaly) &times; exaggeration.</li>
+        <li>The data are the same monthly JPL mascon frames as the flat map (gain factors applied). Neighbouring columns move together because the real measurement is a ~300 km mascon.</li>
+        <li>Months with no satellite solution show "No data"; nothing is interpolated.</li>
+        <li>The white outline is our analysis region (Punjab, Haryana, Delhi, Rajasthan). It floats above the columns so it stays visible; its height means nothing.</li>
+      </ul>
     </details>
   </div>
 </section>

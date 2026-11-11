@@ -149,3 +149,31 @@ test('static tier works with WebGL unavailable', async ({ page }, info) => {
   await page.screenshot({ path: `${SHOTS}/${info.project.name}-hero-static.png` });
   expect(errors).toEqual([]);
 });
+
+test('3D columns: loads, plays, exaggeration label matches applied scale, missing month', async ({ page }, info) => {
+  const errors = watchErrors(page);
+  await ready(page, '/?tier=lite');
+  await page.locator('#globe-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await expect(page.locator('#globe-month')).toHaveText('Aug 2010', { timeout: 30000 });
+  await page.waitForTimeout(3500); // dive animation
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-globe.png` });
+  await expect(page.locator('#globe-exag-out')).toContainText('4 km tall');
+  const c = await page.evaluate(() => (window as unknown as { __columns: { kmPerCm: number; sampleHeight: number; baseCm: number } }).__columns);
+  expect(c.kmPerCm).toBe(4);
+  expect(c.sampleHeight).toBeCloseTo(((c.baseCm + 10) * 4) / 6371, 9);
+  await page.locator('#globe-exag').evaluate((el) => { (el as HTMLInputElement).value = '8'; el.dispatchEvent(new Event('input')); });
+  await expect(page.locator('#globe-exag-out')).toContainText('8 km tall');
+  await page.locator('#globe-play').click();
+  await page.waitForTimeout(1500);
+  await expect(page.locator('#globe-month')).not.toHaveText('Aug 2010');
+  await page.locator('#globe-play').click();
+  const idx = await page.evaluate(async () => (await (await fetch('data/grid.json')).json()).months.indexOf('2017-12'));
+  await page.locator('#globe-slider').evaluate((el, i) => { (el as HTMLInputElement).value = String(i); el.dispatchEvent(new Event('input')); }, idx);
+  await expect(page.locator('#globe-nodata')).toBeVisible();
+  await page.locator('#globe [data-gq="gws"]').click();
+  await page.locator('#globe-slider').evaluate((el) => { (el as HTMLInputElement).value = '250'; el.dispatchEvent(new Event('input')); });
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-globe-gws-late.png` });
+  expect(await overflow(page)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+});

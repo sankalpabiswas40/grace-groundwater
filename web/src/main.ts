@@ -127,6 +127,11 @@ async function boot() {
   (document.getElementById('about-date')!).textContent = new Date(meta.generated).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' });
   lazy('#satellites', initSats);
   lazy('#method', async () => { document.getElementById('flow')!.classList.add('in'); (await import('./curve')).initBar(); });
+  lazy('#globe', async () => {
+    if (tier === 'static') { document.getElementById('globe-fallback')!.hidden = false; return; }
+    try { await (await import('./columns')).initColumns(tier); }
+    catch (e) { console.warn('3D columns unavailable', e); document.getElementById('globe-fallback')!.hidden = false; }
+  });
   lazy('#map', async () => { mapH = await (await import('./map')).initMap(); });
   lazy('#curve', async () => { await (await import('./curve')).initCurve(meta); });
   lazy('.tex', renderTex, '400px');

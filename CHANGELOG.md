@@ -19,3 +19,5 @@
 - Deployed to GitHub Pages with a GitHub Actions workflow: https://sankalpabiswas40.github.io/grace-groundwater/
 - All 16 browser tests pass against the live address at phone (390 x 844) and laptop (1440 x 900) sizes.
 - Made the poster QR code (error correction H) as poster/qr.svg and poster/qr_2000px.png.
+- Added the first Part 5 chapter: a 3D view (#globe) where the real GRACE grid stands on the globe as columns, with play/pause, month slider,
+  total water vs groundwater, height exaggeration (always displayed), tap-a-column time series, free explore and a Flat map button.

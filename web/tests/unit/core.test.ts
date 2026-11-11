@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { decodeFrames, evalFit, makeFrames, type Grid } from '../../src/data';
-import { bouguerMicroGal, G, orbitalSpeed, rangeChange, subsolarPoint, waterTableChange } from '../../src/physics';
+import { bouguerMicroGal, columnHeightUnits, COLUMN_BASE_CM, G, orbitalSpeed, rangeChange, subsolarPoint, waterTableChange } from '../../src/physics';
 
 describe('data loader', () => {
   it('decodes Int16 millimetres to cm and maps the sentinel to NaN', () => {
@@ -61,6 +61,15 @@ describe('physics', () => {
     expect(numeric / analytic).toBeCloseTo(1, 2);
     expect(analytic * 1e6).toBeGreaterThan(1); // micrometres, plausible size
     expect(analytic * 1e6).toBeLessThan(20);
+  });
+  it('3D column height matches the displayed exaggeration', () => {
+    // at 8 km per cm: average cell = 60 cm * 8 km = 480 km = 480/6371 Earth radii
+    expect(COLUMN_BASE_CM).toBe(60);
+    expect(columnHeightUnits(0, 8)).toBeCloseTo(480 / 6371, 12);
+    expect(columnHeightUnits(10, 8) - columnHeightUnits(0, 8)).toBeCloseTo(80 / 6371, 12); // +10 cm = +80 km
+    expect(columnHeightUnits(-60, 8)).toBe(0);
+    expect(columnHeightUnits(-90, 8)).toBe(0); // never negative
+    expect(columnHeightUnits(5, 20) / columnHeightUnits(5, 10)).toBeCloseTo(2, 12);
   });
   it('water-table conversion dh = dGWS / Sy', () => {
     expect(waterTableChange(-12, 0.12)).toBeCloseTo(-1, 12);

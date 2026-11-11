@@ -36,6 +36,17 @@ export function rangeChangeRel(x: number, M: number, h: number, L: number, v: nu
   return rangeChange(x, M, h, L, v) - rangeChange(-xFar, M, h, L, v);
 }
 
+/** Columns in the 3D view stand on a base so that losses show as shorter columns. */
+export const COLUMN_BASE_CM = 60;
+const R_EARTH_KM = 6371;
+/**
+ * Height of a 3D data column in scene units (Earth radius = 1) for an anomaly in cm,
+ * when 1 cm of water is drawn kmPerCm kilometres tall. Never negative.
+ */
+export function columnHeightUnits(anomalyCm: number, kmPerCm: number): number {
+  return (Math.max(0, COLUMN_BASE_CM + anomalyCm) * kmPerCm) / R_EARTH_KM;
+}
+
 /** Water-table change (m) from a groundwater storage change (cm): dh = dGWS / Sy. */
 export function waterTableChange(dGwsCm: number, sy: number): number {
   return dGwsCm / 100 / sy;
