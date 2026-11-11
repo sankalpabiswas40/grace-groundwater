@@ -177,3 +177,30 @@ test('3D columns: loads, plays, exaggeration label matches applied scale, missin
   expect(await overflow(page)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
+
+test('underground: water-table change equals GWS / Sy from the real series', async ({ page }, info) => {
+  const errors = watchErrors(page);
+  await ready(page, '/?tier=lite');
+  await page.locator('#underground').scrollIntoViewIfNeeded();
+  await expect(page.locator('#ug-readout')).toContainText('m', { timeout: 20000 });
+  const rs = await page.evaluate(async () => (await (await fetch('data/region_series.json')).json()));
+  const i = rs.months.indexOf('2020-06');
+  await page.locator('#ug-slider').evaluate((el, k) => { (el as HTMLInputElement).value = String(k); el.dispatchEvent(new Event('input')); }, i);
+  let ug = await page.evaluate(() => (window as unknown as { __ug: { gwsCm: number; sy: number; dh: number; month: string } }).__ug);
+  expect(ug.month).toBe('2020-06');
+  expect(ug.sy).toBeCloseTo(0.12, 9);
+  expect(ug.gwsCm).toBeCloseTo(rs.series.gws_jpl[i], 6);
+  expect(ug.dh).toBeCloseTo(rs.series.gws_jpl[i] / 100 / 0.12, 9);
+  await expect(page.locator('#ug-working')).toContainText('/ 0.12');
+  await page.locator('#ug-sy').evaluate((el) => { (el as HTMLInputElement).value = '0.2'; el.dispatchEvent(new Event('input')); });
+  ug = await page.evaluate(() => (window as unknown as { __ug: { gwsCm: number; sy: number; dh: number; month: string } }).__ug);
+  expect(ug.dh).toBeCloseTo(rs.series.gws_jpl[i] / 100 / 0.2, 9);
+  await page.locator('#ug-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-underground.png` });
+  const gap = rs.months.indexOf('2017-12');
+  await page.locator('#ug-slider').evaluate((el, k) => { (el as HTMLInputElement).value = String(k); el.dispatchEvent(new Event('input')); }, gap);
+  await expect(page.locator('#ug-readout')).toContainText('No data');
+  expect(await overflow(page)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+});

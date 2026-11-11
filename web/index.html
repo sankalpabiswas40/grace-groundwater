@@ -25,7 +25,7 @@
   <a class="brand" href="#home" aria-label="Top of page">GRACE <span>&middot; NW India</span></a>
   <nav aria-label="Sections">
     <a href="#gravity">Gravity</a><a href="#satellites">Satellites</a><a href="#method">Method</a>
-    <a href="#globe">3D</a><a href="#map">Map</a><a href="#curve">Trend</a><a href="#why">Why</a><a href="#quiz">Quiz</a><a href="#methods">Methods</a>
+    <a href="#globe">3D</a><a href="#map">Map</a><a href="#curve">Trend</a><a href="#underground">Underground</a><a href="#why">Why</a><a href="#quiz">Quiz</a><a href="#methods">Methods</a>
   </nav>
   <div class="tools">
     <label class="tier"><span class="sr">Quality</span>
@@ -318,6 +318,54 @@
       <table class="tbl" id="sens-table"></table>
       <p>A single straight line is a simplification: the data fall steadily to about 2017 and are flatter, with large swings, afterwards.</p>
     </details>
+  </div>
+</section>
+
+<!-- UNDERGROUND (Part 5, chapter 6) -->
+<section id="underground" class="band alt">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">3D &middot; Under the ground</p>
+      <h2>What does that mean for the water table?</h2>
+      <p>GRACE gives a thickness of <em>water</em>. In the ground, water only fills the gaps between grains, so the same loss lowers the water table by much more. How much more depends on the <b>specific yield</b> (S<sub>y</sub>): the fraction of the aquifer's volume that drains freely.</p>
+      <div class="row">
+        <button class="btn primary" id="ug-play" aria-label="Play">&#9654;</button>
+        <input id="ug-slider" type="range" min="0" max="1" value="0" aria-label="Month">
+        <output id="ug-month" class="mono month-out"></output>
+      </div>
+      <label class="slider-label" for="ug-sy">Specific yield S<sub>y</sub>: <output id="ug-sy-out" class="mono"></output></label>
+      <input id="ug-sy" type="range" min="0.03" max="0.32" step="0.01" value="0.12">
+      <p class="readout" id="ug-readout" aria-live="polite"></p>
+      <p class="mono small" id="ug-working"></p>
+      <p class="badge">This is an estimate, not a measurement. It is a regional average; real wells differ widely.</p>
+      <details class="deeper">
+        <summary>Go deeper: the conversion and where S<sub>y</sub> comes from</summary>
+        <div class="tex" data-tex="\Delta h = \frac{\Delta GWS}{S_y}"></div>
+        <p><b>&Delta;GWS</b> is our NW India groundwater storage anomaly for the month (JPL mascons minus GLDAS, cm of water, relative to 2004&ndash;2009).</p>
+        <p><b>Default S<sub>y</sub> = 0.12</b> is the value assumed for this same region by Rodell et al. (2009), who cite India's Ministry of Water Resources: "Assuming a specific yield of 0.12", they estimate a regional mean water-table decline of about 0.33 m per year. <a href="https://doi.org/10.1038/nature08238" rel="noopener">Nature 460, 999&ndash;1002</a>.</p>
+        <p><b>Slider range 0.03 to 0.32</b> spans the individual determinations for silt through medium sand in Johnson (1967), <i>Specific yield: compilation of specific yields for various materials</i>, USGS Water-Supply Paper 1662-D, <a href="https://doi.org/10.3133/wsp1662D" rel="noopener">doi:10.3133/wsp1662D</a>:</p>
+        <table class="tbl">
+          <tr><th>Material</th><th>Minimum</th><th>Average</th><th>Maximum</th></tr>
+          <tr><td>Clay</td><td class="num">0%</td><td class="num">2%</td><td class="num">5%</td></tr>
+          <tr><td>Silt</td><td class="num">3%</td><td class="num">8%</td><td class="num">19%</td></tr>
+          <tr><td>Fine sand</td><td class="num">10%</td><td class="num">21%</td><td class="num">28%</td></tr>
+          <tr><td>Medium sand</td><td class="num">15%</td><td class="num">26%</td><td class="num">32%</td></tr>
+          <tr><td>Coarse sand</td><td class="num">20%</td><td class="num">27%</td><td class="num">35%</td></tr>
+        </table>
+        <p>Limits: one S<sub>y</sub> for the whole region is a strong simplification; confined aquifers respond differently; and the groundwater number itself carries GRACE and land-model errors.</p>
+      </details>
+    </div>
+    <figure class="panel">
+      <div class="ug-stage" id="ug-stage">
+        <canvas id="ug-canvas" role="img" aria-label="Cutaway block of alluvium with soil, sand and clay layers, tube wells and a water table that moves with the selected month"></canvas>
+        <div id="ug-fallback" class="nodata" hidden><b>3D view unavailable</b><span>The numbers on this page still work.</span></div>
+      </div>
+      <ul class="ug-legend small">
+        <li><span style="background:#6b4f33"></span>soil</li><li><span style="background:#d9c08e"></span>sand</li><li><span style="background:#8a8f99"></span>clay</li>
+        <li><span style="background:#2b7fc2"></span>saturated zone</li><li><span style="background:#fff;outline:1px solid #888"></span>2004&ndash;2009 level</li><li><span style="background:#3a3f47"></span>tube wells</li>
+      </ul>
+      <figcaption class="badge">Schematic geometry, not to scale. Block is 30 m deep; layers, wells and the starting depth (8 m) are illustrative. Only the change in water level comes from data. Drag sideways to turn.</figcaption>
+    </figure>
   </div>
 </section>
 

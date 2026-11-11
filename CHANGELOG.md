@@ -21,3 +21,5 @@
 - Made the poster QR code (error correction H) as poster/qr.svg and poster/qr_2000px.png.
 - Added the first Part 5 chapter: a 3D view (#globe) where the real GRACE grid stands on the globe as columns, with play/pause, month slider,
   total water vs groundwater, height exaggeration (always displayed), tap-a-column time series, free explore and a Flat map button.
+- Added the underground chapter (#underground): a schematic 3D cutaway of alluvium whose water table follows our real NW India groundwater series,
+  using delta_h = delta_GWS / Sy. Default Sy = 0.12 (Rodell et al. 2009); slider range 0.03-0.32 from Johnson (1967), USGS Water-Supply Paper 1662-D.

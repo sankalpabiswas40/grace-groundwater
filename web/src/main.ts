@@ -132,6 +132,7 @@ async function boot() {
     try { await (await import('./columns')).initColumns(tier); }
     catch (e) { console.warn('3D columns unavailable', e); document.getElementById('globe-fallback')!.hidden = false; }
   });
+  lazy('#underground', async () => { await (await import('./underground')).initUnderground(tier); });
   lazy('#map', async () => { mapH = await (await import('./map')).initMap(); });
   lazy('#curve', async () => { await (await import('./curve')).initCurve(meta); });
   lazy('.tex', renderTex, '400px');
