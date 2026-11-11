@@ -1,0 +1,13 @@
+pipeline/raw/
+.netrc
+_netrc
+*.netrc
+.env
+credentials*
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/

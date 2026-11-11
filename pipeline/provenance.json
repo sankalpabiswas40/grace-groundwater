@@ -1,0 +1,33 @@
+{
+  "state_boundaries": {
+    "file": "States/Admin2.shp",
+    "source": "https://github.com/datameet/maps",
+    "provider": "DataMeet India community",
+    "licence": "CC BY 4.0",
+    "note": "Open file chosen by the author instead of the Survey of India portal download. Not an official Survey of India product.",
+    "analysis_region": [
+      "Punjab",
+      "Haryana",
+      "Delhi",
+      "Rajasthan"
+    ],
+    "files_sha256": {
+      "Admin2.shp": "b61ebc11a7487ce1c340d55fc9d0c1a2b63af1f73191fef691c11693c726130d",
+      "Admin2.shx": "dc428a44ed20384b02c3c5971f2b200b15d429923b6cc770cae940d0af21016a",
+      "Admin2.dbf": "4ec2f9b83263c85781bc9abf0d281d441b5e02377be124bda6b5d87bd9dc4ccd",
+      "Admin2.prj": "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4",
+      "Admin2.cpg": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824"
+    },
+    "download_date": "2026-11-11"
+  },
+  "csr_mascon": {
+    "product": "CSR GRACE/GRACE-FO RL06.3 Mascon Solutions (RL06 Mascons v02), all corrections",
+    "doi": "10.15781/cgq9-nh24",
+    "source": "https://download.csr.utexas.edu/outgoing/grace/RL0603_mascons/",
+    "files_sha256": {
+      "CSR_GRACE_GRACE-FO_RL0603_Mascons_all-corrections.nc": "d4bd8b7364fb34d871198001563c70d344792cb7b0a577c04f8b91c713741292",
+      "CSR_GRACE_GRACE-FO_RL06_Mascons_v02_LandMask.nc": "65ddd8f3c7f7633c3a34f904e196307f71e4994e11ceb64f9337275908ff2f3b"
+    },
+    "download_date": "2026-11-11"
+  }
+}
