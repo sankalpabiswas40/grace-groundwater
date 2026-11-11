@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weighing Delhi's Water from Space</title>
+<meta name="description" content="How the GRACE and GRACE-FO satellites weigh north India's groundwater from orbit, using gravity.">
+<meta name="theme-color" content="#06101f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%2306101f'/%3E%3Cpath d='M16 7c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z' fill='%234fb3d9'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+<a class="skip" href="#gravity">Skip to content</a>
+
+<div id="loader" role="status" aria-live="polite">
+  <div class="loader-inner">
+    <p class="loader-title">Weighing Delhi's Water from Space</p>
+    <div class="bar" aria-hidden="true"><div id="loader-bar"></div></div>
+    <p class="mono" id="loader-bytes">0 kB</p>
+    <p id="loader-fact" class="loader-fact"></p>
+  </div>
+</div>
+
+<header class="topbar" id="topbar">
+  <a class="brand" href="#home" aria-label="Top of page">GRACE <span>&middot; NW India</span></a>
+  <nav aria-label="Sections">
+    <a href="#gravity">Gravity</a><a href="#satellites">Satellites</a><a href="#method">Method</a>
+    <a href="#map">Map</a><a href="#curve">Trend</a><a href="#why">Why</a><a href="#quiz">Quiz</a><a href="#methods">Methods</a>
+  </nav>
+  <div class="tools">
+    <label class="tier"><span class="sr">Quality</span>
+      <select id="tier-select" aria-label="Graphics quality">
+        <option value="full">Quality: Full</option><option value="lite">Quality: Lite</option><option value="static">Quality: Static</option>
+      </select>
+    </label>
+    <button id="theme-toggle" class="icon-btn" aria-label="Switch light or dark mode" title="Light / dark">&#9680;</button>
+  </div>
+</header>
+
+<main>
+<!-- 1 HERO -->
+<section id="home" class="hero" aria-label="Introduction">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
+  <div id="hero-static" class="hero-static" hidden></div>
+  <div class="hero-text">
+    <p class="eyebrow">GRACE &amp; GRACE-FO &middot; satellite gravimetry</p>
+    <h1>We weighed north India's water from space.</h1>
+    <p class="sub" id="hero-sub">Loading our result&hellip;</p>
+    <div class="counter" aria-live="off">
+      <p class="counter-label">Groundwater lost from NW India since you opened this page</p>
+      <p class="counter-value mono"><span id="counter">0</span> <span class="unit">litres</span></p>
+      <details class="deeper small">
+        <summary>Go deeper: how this counter works</summary>
+        <p id="counter-formula"></p>
+        <p>This is the long-term average rate spread evenly over time. In reality storage rises in the monsoon and falls in the dry season; the counter shows only the trend.</p>
+      </details>
+    </div>
+  </div>
+  <p class="badge hero-badge">Satellites and orbit: schematic, not to scale. Day/night line: real Sun position now.</p>
+  <a class="scroll-cue" href="#gravity" aria-label="Scroll to the next section"><span></span>Scroll</a>
+</section>
+
+<!-- 2 GRAVITY -->
+<section id="gravity" class="band">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">1 &middot; The idea</p>
+      <h2>Gravity is not the same everywhere</h2>
+      <p>Gravity depends on how much mass is beneath you. Water is heavy: when an aquifer fills, gravity above it becomes very slightly stronger. When it is pumped out, gravity weakens. The change is tiny, but it can be measured.</p>
+      <p>Drag the slider to fill or empty the aquifer and watch the gravimeter.</p>
+      <label class="slider-label" for="grav-slider">Water added to or removed from the aquifer: <output id="grav-h" class="mono">0 cm</output></label>
+      <input id="grav-slider" type="range" min="-200" max="200" step="1" value="0" aria-describedby="grav-read">
+      <p id="grav-read" class="readout"><span class="mono big" id="grav-val">0.00</span> <span class="unit">&micro;Gal change in g</span><br><span class="muted">Earth's gravity is about 980,000,000 &micro;Gal.</span></p>
+      <details class="deeper">
+        <summary>Go deeper: the Bouguer slab formula</summary>
+        <div class="tex" data-tex="\Delta g = 2\pi G \rho h"></div>
+        <p>For an infinite flat layer of thickness <i>h</i> and density <i>&rho;</i>. With <span class="mono">G = 6.674&times;10<sup>&minus;11</sup> m&sup3; kg<sup>&minus;1</sup> s<sup>&minus;2</sup></span>, water <span class="mono">&rho; = 1000 kg m<sup>&minus;3</sup></span> and <span class="mono">h = 0.01 m</span>:</p>
+        <div class="tex" data-tex="\Delta g = 2\pi(6.674\times10^{-11})(1000)(0.01) = 4.19\times10^{-9}\ \mathrm{m\,s^{-2}} = 0.419\ \mu\mathrm{Gal}"></div>
+        <p>since <span class="mono">1 &micro;Gal = 10<sup>&minus;8</sup> m s<sup>&minus;2</sup></span>. So each centimetre of water changes gravity by about 0.42 &micro;Gal. This number is checked in the project's tests.</p>
+      </details>
+    </div>
+    <figure class="panel">
+      <svg id="grav-svg" viewBox="0 0 400 320" role="img" aria-label="Cross-section of ground with an aquifer whose water level follows the slider">
+        <defs>
+          <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--sky1)"/><stop offset="1" stop-color="var(--sky2)"/></linearGradient>
+          <pattern id="g-sand" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d9c08e"/><circle cx="2" cy="2" r=".8" fill="#b89b62"/><circle cx="6" cy="6" r=".8" fill="#b89b62"/></pattern>
+        </defs>
+        <rect width="400" height="110" fill="url(#g-sky)"/>
+        <rect y="110" width="400" height="34" fill="#7a5a3a"/>
+        <rect y="144" width="400" height="130" fill="url(#g-sand)"/>
+        <rect id="grav-water" y="209" width="400" height="65" fill="#2b7fc2" opacity=".78"/>
+        <line id="grav-table" x1="0" x2="400" y1="209" y2="209" stroke="#0b4f8a" stroke-width="2" stroke-dasharray="6 4"/>
+        <rect y="274" width="400" height="46" fill="#5b5e66"/>
+        <text x="10" y="132" class="svg-lab" fill="#fff">soil</text>
+        <text x="10" y="162" class="svg-lab" fill="#4a3a1c">sand aquifer</text>
+        <text x="10" y="302" class="svg-lab" fill="#fff">clay / bedrock</text>
+        <text id="grav-tlabel" x="390" y="203" text-anchor="end" class="svg-lab" fill="#0b4f8a">water table</text>
+        <g transform="translate(200 110)">
+          <rect x="-26" y="-62" width="52" height="58" rx="6" fill="var(--card)" stroke="var(--ink)" stroke-width="1.5"/>
+          <line x1="0" y1="-52" x2="0" y2="-36" stroke="var(--ink)" stroke-width="1.5"/>
+          <path d="M0-36 l5 3 -10 5 10 5 -10 5 5 3" fill="none" stroke="var(--ink)" stroke-width="1.5" id="grav-spring"/>
+          <rect id="grav-mass" x="-9" y="-15" width="18" height="9" fill="var(--accent)"/>
+          <rect x="-32" y="-4" width="64" height="4" fill="var(--ink)"/>
+          <text y="-68" text-anchor="middle" class="svg-lab" fill="var(--ink)">gravimeter</text>
+        </g>
+      </svg>
+      <figcaption class="badge">Schematic, not to scale. The spring stretch is exaggerated.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 3 SATELLITES -->
+<section id="satellites" class="band alt sat-section">
+  <div class="sat-sticky">
+    <div class="wrap two">
+      <div>
+        <p class="eyebrow">2 &middot; The instrument</p>
+        <h2>How two satellites feel a mass</h2>
+        <p>Two satellites follow each other around the Earth. When the leader approaches extra mass, it is pulled forward first and the gap between them grows. Then the follower is pulled too and catches up. The satellites measure that tiny change in distance.</p>
+        <p class="muted small" id="sat-hint">Keep scrolling to fly the pair over the mass.</p>
+        <label class="slider-label" for="sat-mass">Size of the extra mass: <output id="sat-mass-out" class="mono"></output></label>
+        <input id="sat-mass" type="range" min="1" max="50" step="1" value="10">
+        <p class="readout"><span class="mono big" id="sat-val">0.0</span> <span class="unit">&micro;m change in separation</span></p>
+        <details class="deeper">
+          <summary>Go deeper: how the distance is measured</summary>
+          <p><b>Microwave ranging (GRACE and GRACE-FO).</b> NASA states the original GRACE satellites "were able to measure their separation distance to within one micron" while flying about 220 km apart at an altitude of roughly 500 km. <a href="https://gracefo.jpl.nasa.gov/mission/spacecraft/" rel="noopener">NASA/JPL: GRACE-FO spacecraft</a>.</p>
+          <p><b>Laser ranging interferometer (GRACE-FO only).</b> A technology demonstration that NASA says "could improve the accuracy of inter-spacecraft ranging by tenfold or more" (same NASA page).</p>
+          <p><b>GPS and accelerometers.</b> GPS tracks each orbit, and accelerometers measure non-gravity forces such as air drag and sunlight pressure so they can be removed, leaving only the effect of gravity.</p>
+          <p><b>The curve here.</b> A simplified model: straight flight at height <i>h</i> over a point mass <i>M</i>, pair separation <i>L</i>, speed <i>v</i>:</p>
+          <div class="tex" data-tex="\Delta\rho(x)=\frac{GM}{v^{2}}\left[\sinh^{-1}\!\frac{x+L/2}{h}-\sinh^{-1}\!\frac{x-L/2}{h}\right]"></div>
+          <p class="mono small" id="sat-params"></p>
+          <p>Real processing fits a whole month of such measurements over the entire globe at once. This formula is verified against a direct numerical integration in the project's tests.</p>
+        </details>
+      </div>
+      <figure class="panel">
+        <canvas id="sat-canvas" width="800" height="560" role="img" aria-label="Animation of two satellites passing over an extra mass, with a graph of the change in their separation"></canvas>
+        <figcaption class="badge">Schematic, not to scale. Point-mass, straight-line model.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- 4 METHOD -->
+<section id="method" class="band">
+  <div class="wrap">
+    <p class="eyebrow">3 &middot; The recipe</p>
+    <h2>From gravity to groundwater</h2>
+    <p class="lead">GRACE does not see groundwater directly. It weighs <em>all</em> the water in a region. We subtract the parts we can model to find what is left underground.</p>
+    <ol class="flow" id="flow">
+      <li><b>Satellite ranging</b><span>distance between the twins, every few seconds</span></li>
+      <li><b>Monthly gravity field</b><span>one global solution per month</span></li>
+      <li><b>Mascons</b><span>mass blocks about 300 km wide</span></li>
+      <li><b>Total water storage</b><span>everything: soil, snow, rivers, groundwater</span></li>
+      <li class="minus"><b>&minus; soil moisture, snow, canopy</b><span>from the GLDAS Noah land model</span></li>
+      <li class="result"><b>= Groundwater</b><span>what remains, with the model's errors</span></li>
+    </ol>
+    <div class="panel pad">
+      <h3>Pick a month: where is the water anomaly, NW India?</h3>
+      <div class="row">
+        <button class="btn" id="bar-prev" aria-label="Previous month">&lsaquo;</button>
+        <input id="bar-slider" type="range" min="0" max="1" value="0" aria-label="Month">
+        <button class="btn" id="bar-next" aria-label="Next month">&rsaquo;</button>
+        <output id="bar-month" class="mono month-out"></output>
+      </div>
+      <div id="bar-chart" class="chart" role="img" aria-label="Bar chart of water storage components for the selected month"></div>
+      <p class="muted small">Values are anomalies in cm of water relative to the 2004&ndash;2009 average, area-weighted over Punjab, Haryana, Delhi and Rajasthan. Total water storage: JPL mascons. Groundwater = total &minus; soil moisture &minus; snow &minus; canopy.</p>
+    </div>
+    <details class="deeper">
+      <summary>Go deeper: the subtraction</summary>
+      <div class="tex" data-tex="\Delta GWS = \Delta TWS - \left(\Delta SM + \Delta SWE + \Delta CAN\right)"></div>
+      <p>All terms are anomalies relative to January 2004 &ndash; December 2009, in cm of water. Soil moisture is the sum of GLDAS-2.1 Noah's four layers (0&ndash;200 cm). Surface water in rivers, canals and reservoirs is <b>not</b> removed, so it is still inside our "groundwater" number. Any error in the land model goes straight into the groundwater estimate.</p>
+    </details>
+  </div>
+</section>
+
+<!-- 5 MAP -->
+<section id="map" class="band alt">
+  <div class="wrap">
+    <p class="eyebrow">4 &middot; The data</p>
+    <h2>Water storage over north India, month by month</h2>
+    <p class="lead">Blue means more water than the 2004&ndash;2009 average, brown means less. Press play, or tap any cell to see its history.</p>
+    <div class="map-ui panel">
+      <div class="toggles">
+        <div class="seg" role="group" aria-label="Quantity">
+          <button class="seg-btn on" data-q="tws" aria-pressed="true">Total water</button>
+          <button class="seg-btn" data-q="gws" aria-pressed="false">Groundwater</button>
+        </div>
+        <div class="seg" role="group" aria-label="View">
+          <button class="seg-btn on" data-v="month" aria-pressed="true">Monthly anomaly</button>
+          <button class="seg-btn" data-v="trend" aria-pressed="false">Trend map</button>
+        </div>
+      </div>
+      <div class="map-stage" id="map-stage">
+        <canvas id="map-canvas" aria-hidden="true"></canvas>
+        <svg id="map-svg" role="img" aria-label="Map of north India showing water storage anomaly on a half-degree grid"></svg>
+        <div id="map-nodata" class="nodata" hidden><b>No data</b><span id="map-nodata-why"></span></div>
+        <p class="badge map-badge">Each cell is a sample of a blurry ~300 km measurement, not a sharp pixel.</p>
+        <div id="map-popup" class="popup" hidden role="dialog" aria-label="Cell time series">
+          <button class="icon-btn close" id="popup-close" aria-label="Close">&times;</button>
+          <p class="mono small" id="popup-title"></p>
+          <svg id="popup-svg" viewBox="0 0 280 120"></svg>
+          <p class="small" id="popup-trend"></p>
+        </div>
+      </div>
+      <div class="legend"><canvas id="map-legend" width="300" height="14" aria-hidden="true"></canvas><div class="legend-ticks mono" id="map-legend-ticks"></div><p class="small muted" id="map-legend-title"></p></div>
+      <div class="controls" id="map-controls">
+        <button class="btn primary" id="map-play" aria-label="Play">&#9654;</button>
+        <input id="map-slider" type="range" min="0" max="1" value="0" aria-label="Month">
+        <output id="map-month" class="mono month-out"></output>
+        <div class="seg" role="group" aria-label="Speed">
+          <button class="seg-btn on" data-s="1" aria-pressed="true">1&times;</button>
+          <button class="seg-btn" data-s="2" aria-pressed="false">2&times;</button>
+          <button class="seg-btn" data-s="4" aria-pressed="false">4&times;</button>
+        </div>
+      </div>
+    </div>
+    <details class="deeper">
+      <summary>Go deeper: what the map can and cannot show</summary>
+      <ul id="map-notes">
+        <li>Monthly frames are the JPL mascon solution with JPL's gain factors applied, sampled on a 0.5&deg; grid. The native measurement is a 3&deg; mascon, so neighbouring cells are not independent. You can see the mascon blocks in the trend map.</li>
+        <li>Trend maps use the JPL solution without gain factors, because JPL cautions that the gain factors are designed around the seasonal cycle.</li>
+        <li>A few cells in the high Himalaya (near 28&deg;N, 87&deg;E) show large positive "groundwater" trends. This is very likely snow accumulating in the GLDAS model at glacier cells, not real groundwater. We left it visible.</li>
+        <li>Boundaries: DataMeet India community state boundaries (CC BY 4.0). The thick outline is our analysis region.</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<!-- 6 CURVE -->
+<section id="curve" class="band">
+  <div class="wrap">
+    <p class="eyebrow">5 &middot; The result</p>
+    <h2>The monsoon breathes, the trend falls</h2>
+    <p class="lead">Every year the monsoon refills the ground and the dry season drains it. Underneath that rhythm, the long-term level in north-west India has been dropping.</p>
+    <div class="panel pad">
+      <div class="toggles">
+        <div class="seg" role="group" aria-label="Quantity">
+          <button class="seg-btn on" data-cq="gws" aria-pressed="true">Groundwater</button>
+          <button class="seg-btn" data-cq="tws" aria-pressed="false">Total water</button>
+        </div>
+        <button class="btn" id="curve-split" aria-pressed="false">Separate cycle and trend</button>
+      </div>
+      <div id="curve-chart" class="chart tall" role="img" aria-label="Time series of water storage for north-west India from two independent solutions"></div>
+      <p class="legend-line small"><span class="key jpl"></span>JPL mascons <span class="key csr"></span>CSR mascons <span class="key gap"></span>no data (2017&ndash;18 mission gap) <span class="key fit"></span>fitted model</p>
+    </div>
+    <div class="cards">
+      <div class="card ours">
+        <p class="card-tag">Our result</p>
+        <p class="mono big" id="ours-cm"></p>
+        <p class="mono big" id="ours-km3"></p>
+        <p class="small" id="ours-note"></p>
+      </div>
+      <div class="card">
+        <p class="card-tag">Published: Rodell et al. (2009)</p>
+        <p class="mono big" id="rodell-cm"></p>
+        <p class="mono big" id="rodell-km3"></p>
+        <p class="small" id="rodell-note"></p>
+      </div>
+      <div class="card">
+        <p class="card-tag">Our fit over their period</p>
+        <p class="mono big" id="cross-cm"></p>
+        <p class="mono big" id="cross-km3"></p>
+        <p class="small" id="cross-note"></p>
+      </div>
+    </div>
+    <details class="deeper">
+      <summary>Go deeper: the fit and its uncertainty</summary>
+      <div class="tex" data-tex="y(t)=a+b\,t+c\cos 2\pi t+d\sin 2\pi t+e\cos 4\pi t+f\sin 4\pi t"></div>
+      <p>Least squares on the months that exist (no gap filling), <i>t</i> in decimal years. <i>b</i> is the trend. The &plusmn; is the formal standard error; monthly residuals are autocorrelated, so the true uncertainty is larger. The difference between the JPL and CSR solutions, and between using and not using gain factors, is a more honest guide:</p>
+      <table class="tbl" id="sens-table"></table>
+      <p>A single straight line is a simplification: the data fall steadily to about 2017 and are flatter, with large swings, afterwards.</p>
+    </details>
+  </div>
+</section>
+
+<!-- 7 WHY -->
+<section id="why" class="band alt">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow">6 &middot; The cause</p>
+      <h2>Where is the water going?</h2>
+      <div id="why-text"></div>
+    </div>
+    <figure class="panel pad" id="why-figure"></figure>
+  </div>
+</section>
+
+<!-- 8 QUIZ -->
+<section id="quiz" class="band">
+  <div class="wrap narrow">
+    <p class="eyebrow">7 &middot; Check yourself</p>
+    <h2>Four quick questions</h2>
+    <div id="quiz-body"></div>
+    <p class="mono" id="quiz-score" aria-live="polite"></p>
+  </div>
+</section>
+
+<!-- 9 METHODS -->
+<section id="methods" class="band alt">
+  <div class="wrap narrow">
+    <p class="eyebrow">8 &middot; For the examiner</p>
+    <h2>Methods, data and limits</h2>
+    <div id="methods-body"></div>
+  </div>
+</section>
+
+<!-- 10 ABOUT -->
+<section id="about" class="band about">
+  <div class="wrap narrow">
+    <h2>About</h2>
+    <p><b>Weighing Delhi's Water from Space</b><br>Sankalpa Biswas<br>BSc (Hons) Geology, Department of Geology, Hansraj College, University of Delhi<br><span id="about-date"></span></p>
+    <p class="small muted">Earth imagery: NASA Blue Marble Next Generation and NASA Black Marble (NASA Earth Observatory). GRACE and GRACE-FO are joint missions of NASA and DLR / GFZ. This is a student project and is not endorsed by NASA, JPL or any agency.</p>
+    <p class="small"><a href="#poster">Poster mode</a> (auto-playing loop for a screen beside the poster)</p>
+  </div>
+</section>
+</main>
+
+<div id="poster-overlay" hidden><p class="poster-hint">Poster mode &middot; tap anywhere to exit</p><p class="poster-caption" id="poster-caption"></p></div>
+<noscript><p style="padding:2rem">This site needs JavaScript to show the interactive figures.</p></noscript>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

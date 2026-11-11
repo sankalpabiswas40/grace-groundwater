@@ -1,0 +1,29 @@
+{
+  "name": "grace-groundwater-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "d3": "7.9.2",
+    "gsap": "3.15.1",
+    "katex": "0.19.1",
+    "three": "0.187.0",
+    "topojson-client": "3.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/d3": "7.4.3",
+    "@types/geojson": "7946.0.16",
+    "@types/three": "0.187.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  }
+}
