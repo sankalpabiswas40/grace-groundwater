@@ -5,12 +5,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { fmt, loadFrames, monthLabel, url } from './data';
 import { diverging } from './map';
 import { columnHeightUnits, COLUMN_BASE_CM, latLonToVec } from './physics';
 
 const RANGE_CM = 40;
-const TARGET: [number, number] = [27.5, 79];
+const TARGET: [number, number] = [23.5, 80]; // centre of India so the whole country is in view
 
 export interface ColumnsHandle { play(): void; pause(): void; }
 
@@ -76,6 +78,7 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
   scene.add(outline);
   const haloMat = new LineMaterial({ color: 0xffffff, linewidth: 7, depthTest: false, transparent: true });
   const coreMat = new LineMaterial({ color: 0x111111, linewidth: 3.5, depthTest: false, transparent: true });
+  const lineMats: LineMaterial[] = [];
   fetch(url('geo/outlines.json')).then((r) => r.json()).then((o: { nw: GeoJSON.Polygon | GeoJSON.MultiPolygon }) => {
     const polys = o.nw.type === 'Polygon' ? [o.nw.coordinates] : o.nw.coordinates;
     polys.forEach((poly) => poly.forEach((ring) => {
@@ -89,6 +92,32 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
         outline.add(line);
       });
     }));
+    dirty = true;
+  }).catch(() => undefined);
+
+  // every Indian state: thin lines on the ground for the whole country, plus a copy
+  // floating above the columns inside the data box so the states stay readable there
+  const groundMat = new LineMaterial({ color: 0xffffff, linewidth: 1.4, transparent: true, opacity: 0.9 });
+  const stHaloMat = new LineMaterial({ color: 0xffffff, linewidth: 3.2, depthTest: false, transparent: true, opacity: 0.85 });
+  const stCoreMat = new LineMaterial({ color: 0x2a2f3a, linewidth: 1.3, depthTest: false, transparent: true });
+  lineMats.push(groundMat, stHaloMat, stCoreMat);
+  fetch(url('geo/india_states_rings.json')).then((r) => r.json()).then((o: { rings: [number, number][][] }) => {
+    const lat0 = grid.lat[0] - 0.25, lat1 = grid.lat[ny - 1] + 0.25, lon0 = grid.lon[0] - 0.25, lon1 = grid.lon[nx - 1] + 0.25;
+    const inBox = (p: [number, number]) => p[0] >= lon0 && p[0] <= lon1 && p[1] >= lat0 && p[1] <= lat1;
+    const ground: number[] = [], floating: number[] = [];
+    for (const ring of o.rings) for (let k = 0; k < ring.length - 1; k++) {
+      const a = ring[k], b = ring[k + 1];
+      const va = latLonToVec(a[1], a[0]), vb = latLonToVec(b[1], b[0]);
+      ground.push(va[0] * 1.0015, va[1] * 1.0015, va[2] * 1.0015, vb[0] * 1.0015, vb[1] * 1.0015, vb[2] * 1.0015);
+      if (inBox(a) && inBox(b)) floating.push(...va, ...vb);
+    }
+    const g = new LineSegments2(new LineSegmentsGeometry().setPositions(ground), groundMat);
+    scene.add(g);
+    [stHaloMat, stCoreMat].forEach((mat, k) => {
+      const l = new LineSegments2(new LineSegmentsGeometry().setPositions(floating), mat);
+      l.renderOrder = 5 + k;
+      outline.add(l);
+    });
     dirty = true;
   }).catch(() => undefined);
 
@@ -133,14 +162,14 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
   const target = normal.clone();
   camera.up.copy(normal);
   const south = new THREE.Vector3(0, -1, 0).addScaledVector(normal, normal.y).normalize();
-  const camAt = (dist: number) => camera.position.copy(target).addScaledVector(normal, dist * 0.72).addScaledVector(south, dist * 0.7);
+  const camAt = (dist: number) => camera.position.copy(target).addScaledVector(normal, dist * 0.84).addScaledVector(south, dist * 0.54);
   const controls = new OrbitControls(camera, canvas);
   controls.target.copy(target);
   controls.enableDamping = true; controls.enablePan = false;
   controls.minDistance = 0.18; controls.maxDistance = 3.2; controls.maxPolarAngle = Math.PI * 0.47;
   controls.enabled = false;
   controls.addEventListener('change', () => { dirty = true; });
-  const FINAL = stage.clientWidth < stage.clientHeight ? 1.05 : 0.7; // further back on portrait screens
+  const FINAL = stage.clientWidth < stage.clientHeight ? 1.45 : 0.95; // further back on portrait screens
   camAt(reduced ? FINAL : 3.0);
   controls.update();
   canvas.style.touchAction = 'pan-y';
@@ -159,6 +188,7 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
     renderer.setSize(w, h, false);
     camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
     haloMat.resolution.set(w, h); coreMat.resolution.set(w, h);
+    lineMats.forEach((m) => m.resolution.set(w, h));
     haloMat.linewidth = w < 520 ? 5 : 7; coreMat.linewidth = w < 520 ? 2.5 : 3.5;
   };
   new ResizeObserver(resize).observe(stage);
