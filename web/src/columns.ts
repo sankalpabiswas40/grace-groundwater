@@ -1,4 +1,4 @@
-// Chapter 5: the real GRACE grid draped on the globe as 3D columns.
+// Chapter 5: real GRACE data over all of India as 3D columns on a rotatable globe.
 // Height and colour = water storage anomaly for the selected month.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -7,18 +7,21 @@ import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-import { fmt, loadFrames, monthLabel, url } from './data';
+import { calendarMonths, fmt, loadIndia3D, monthLabel, url } from './data';
 import { diverging } from './map';
 import { columnHeightUnits, COLUMN_BASE_CM, latLonToVec } from './physics';
 
 const RANGE_CM = 40;
-const TARGET: [number, number] = [23.5, 80]; // centre of India so the whole country is in view
+const TARGET: [number, number] = [22.5, 81]; // centre of India
 
 export interface ColumnsHandle { play(): void; pause(): void; }
 
 export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle> {
-  const frames = await loadFrames();
-  const { grid, nt, ny, nx } = frames;
+  const d = await loadIndia3D();
+  const N = d.nCells;
+  const months = calendarMonths(d.months[0], d.months[d.months.length - 1]);
+  const stored = new Map(d.months.map((m, k) => [m, k]));
+  const ui = document.getElementById('globe-ui')!;
   const stage = document.getElementById('globe-stage')!;
   const canvas = document.getElementById('globe-canvas') as HTMLCanvasElement;
   const slider = document.getElementById('globe-slider') as HTMLInputElement;
@@ -29,6 +32,7 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
   const nodata = document.getElementById('globe-nodata')!;
   const popup = document.getElementById('globe-popup')!;
   const explore = document.getElementById('globe-explore') as HTMLButtonElement;
+  const closeBtn = document.getElementById('globe-close') as HTMLButtonElement;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: tier === 'full', powerPreference: 'high-performance' });
@@ -38,178 +42,188 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
   let dirty = true;
   const camera = new THREE.PerspectiveCamera(40, 1, 0.005, 50);
 
-  // Earth (dimmed so the data colours stay readable)
   const tex = await new THREE.TextureLoader().loadAsync(url('textures/day_2048.jpg'));
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = tier === 'full' ? 8 : 2;
-  const earth = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 64), new THREE.MeshBasicMaterial({ map: tex, color: 0x8a94a6 }));
-  scene.add(earth);
-  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1, 128, 64), new THREE.MeshBasicMaterial({ map: tex, color: 0x8a94a6 })));
+  scene.add(new THREE.AmbientLight(0xffffff, 1.25));
   const normal = new THREE.Vector3(...latLonToVec(TARGET[0], TARGET[1]));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
-  sun.position.copy(normal).multiplyScalar(3).add(new THREE.Vector3(...latLonToVec(10, 40)));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.0);
+  sun.position.copy(normal).multiplyScalar(2).add(new THREE.Vector3(...latLonToVec(5, 30)).multiplyScalar(3));
   scene.add(sun);
 
-  // columns: one instanced box per grid cell
+  // one instanced box per grid cell inside India
   const geo = new THREE.BoxGeometry(1, 1, 1);
-  geo.translate(0, 0, 0.5); // base on the surface, grows along +z
-  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial(), ny * nx);
+  geo.translate(0, 0, 0.5);
+  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial(), N);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(mesh);
   const dummy = new THREE.Object3D();
   const pos: THREE.Vector3[] = [], quat: THREE.Quaternion[] = [], sx: number[] = [], sy: number[] = [];
-  const zAxis = new THREE.Vector3(0, 0, 1);
-  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
-    const n = new THREE.Vector3(...latLonToVec(grid.lat[j], grid.lon[i]));
-    pos.push(n.clone());
-    // orient: local z = outward, local y = north
+  for (let c = 0; c < N; c++) {
+    const n = new THREE.Vector3(...latLonToVec(d.lat[c], d.lon[c]));
+    pos.push(n);
     const north = new THREE.Vector3(0, 1, 0).addScaledVector(n, -n.y).normalize();
     const east = new THREE.Vector3().crossVectors(north, n).normalize();
-    const m = new THREE.Matrix4().makeBasis(east, north, n);
-    quat.push(new THREE.Quaternion().setFromRotationMatrix(m));
-    const d = (0.5 * Math.PI) / 180;
-    sx.push(d * Math.cos((grid.lat[j] * Math.PI) / 180) * 0.94); sy.push(d * 0.94);
+    quat.push(new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(east, north, n)));
+    const s = (0.5 * Math.PI) / 180;
+    sx.push(s * Math.cos((d.lat[c] * Math.PI) / 180) * 0.9); sy.push(s * 0.9);
   }
-  void zAxis;
   const color = new THREE.Color();
 
-  // region outline (NW India) as a line just above the surface
+  // outlines float just above the tallest columns so they stay visible
   const outline = new THREE.Group();
   scene.add(outline);
-  const haloMat = new LineMaterial({ color: 0xffffff, linewidth: 7, depthTest: false, transparent: true });
-  const coreMat = new LineMaterial({ color: 0x111111, linewidth: 3.5, depthTest: false, transparent: true });
-  const lineMats: LineMaterial[] = [];
+  const mats = {
+    nwHalo: new LineMaterial({ color: 0xffffff, linewidth: 7, depthTest: false, transparent: true }),
+    nwCore: new LineMaterial({ color: 0x111111, linewidth: 3.5, depthTest: false, transparent: true }),
+    stHalo: new LineMaterial({ color: 0xffffff, linewidth: 3.2, depthTest: false, transparent: true, opacity: 0.85 }),
+    stCore: new LineMaterial({ color: 0x2a2f3a, linewidth: 1.3, depthTest: false, transparent: true }),
+  };
+  fetch(url('geo/india_states_rings.json')).then((r) => r.json()).then((o: { rings: [number, number][][] }) => {
+    const flat: number[] = [];
+    for (const ring of o.rings) for (let k = 0; k < ring.length - 1; k++)
+      flat.push(...latLonToVec(ring[k][1], ring[k][0]), ...latLonToVec(ring[k + 1][1], ring[k + 1][0]));
+    [mats.stHalo, mats.stCore].forEach((m, k) => {
+      const l = new LineSegments2(new LineSegmentsGeometry().setPositions(flat), m);
+      l.renderOrder = 5 + k; outline.add(l);
+    });
+    dirty = true;
+  }).catch(() => undefined);
   fetch(url('geo/outlines.json')).then((r) => r.json()).then((o: { nw: GeoJSON.Polygon | GeoJSON.MultiPolygon }) => {
     const polys = o.nw.type === 'Polygon' ? [o.nw.coordinates] : o.nw.coordinates;
     polys.forEach((poly) => poly.forEach((ring) => {
-      if (ring.length < 12) return; // skip tiny enclave rings that only show as specks
-      const pts = ring.map(([lo, la]) => new THREE.Vector3(...latLonToVec(la, lo)));
-      // thick line drawn twice (white halo under black) so it shows on pale columns and on dark ground
-      const flat = pts.flatMap((p) => [p.x, p.y, p.z]);
-      [haloMat, coreMat].forEach((mat, k) => {
-        const line = new Line2(new LineGeometry().setPositions(flat), mat);
-        line.renderOrder = 10 + k;
-        outline.add(line);
+      if (ring.length < 12) return;
+      const flat = ring.flatMap(([lo, la]) => latLonToVec(la, lo));
+      [mats.nwHalo, mats.nwCore].forEach((m, k) => {
+        const l = new Line2(new LineGeometry().setPositions(flat), m);
+        l.renderOrder = 10 + k; outline.add(l);
       });
     }));
     dirty = true;
   }).catch(() => undefined);
 
-  // every Indian state: thin lines on the ground for the whole country, plus a copy
-  // floating above the columns inside the data box so the states stay readable there
-  const groundMat = new LineMaterial({ color: 0xffffff, linewidth: 1.4, transparent: true, opacity: 0.9 });
-  const stHaloMat = new LineMaterial({ color: 0xffffff, linewidth: 3.2, depthTest: false, transparent: true, opacity: 0.85 });
-  const stCoreMat = new LineMaterial({ color: 0x2a2f3a, linewidth: 1.3, depthTest: false, transparent: true });
-  lineMats.push(groundMat, stHaloMat, stCoreMat);
-  fetch(url('geo/india_states_rings.json')).then((r) => r.json()).then((o: { rings: [number, number][][] }) => {
-    const lat0 = grid.lat[0] - 0.25, lat1 = grid.lat[ny - 1] + 0.25, lon0 = grid.lon[0] - 0.25, lon1 = grid.lon[nx - 1] + 0.25;
-    const inBox = (p: [number, number]) => p[0] >= lon0 && p[0] <= lon1 && p[1] >= lat0 && p[1] <= lat1;
-    const ground: number[] = [], floating: number[] = [];
-    for (const ring of o.rings) for (let k = 0; k < ring.length - 1; k++) {
-      const a = ring[k], b = ring[k + 1];
-      const va = latLonToVec(a[1], a[0]), vb = latLonToVec(b[1], b[0]);
-      ground.push(va[0] * 1.0015, va[1] * 1.0015, va[2] * 1.0015, vb[0] * 1.0015, vb[1] * 1.0015, vb[2] * 1.0015);
-      if (inBox(a) && inBox(b)) floating.push(...va, ...vb);
-    }
-    const g = new LineSegments2(new LineSegmentsGeometry().setPositions(ground), groundMat);
-    scene.add(g);
-    [stHaloMat, stCoreMat].forEach((mat, k) => {
-      const l = new LineSegments2(new LineSegmentsGeometry().setPositions(floating), mat);
-      l.renderOrder = 5 + k;
-      outline.add(l);
-    });
-    dirty = true;
-  }).catch(() => undefined);
+  const state = { q: 0 as 0 | 1, t: Math.max(0, months.indexOf('2010-08')), playing: false, kmPerCm: +exag.value };
+  slider.max = String(months.length - 1);
+  // displayed value per cell eases towards the real monthly value (animation only)
+  const shown = new Float32Array(N).fill(NaN), goal = new Float32Array(N).fill(NaN);
+  let hasData = false, settling = true;
 
-  const state = { q: 0 as 0 | 1, t: Math.max(0, grid.months.indexOf('2010-08')), playing: false, kmPerCm: +exag.value };
-  slider.max = String(nt - 1);
-
-  function update() {
-    const f = frames.frame(state.q, state.t);
-    let any = false;
-    for (let k = 0; k < ny * nx; k++) {
-      const v = f[k];
-      if (Number.isNaN(v)) { dummy.scale.set(0, 0, 0); dummy.position.copy(pos[k]); }
-      else {
-        any = true;
-        const h = columnHeightUnits(v, state.kmPerCm);
-        dummy.position.copy(pos[k]); dummy.quaternion.copy(quat[k]);
-        dummy.scale.set(sx[k], sy[k], Math.max(h, 0.0004));
-        const c = d3rgb(diverging(Math.max(0, Math.min(1, 0.5 + v / RANGE_CM / 2))));
-        color.setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace);
-        mesh.setColorAt(k, color);
-      }
-      dummy.updateMatrix();
-      mesh.setMatrixAt(k, dummy.matrix);
+  function setTargets() {
+    const month = months[state.t];
+    const k = stored.get(month);
+    hasData = false;
+    if (k !== undefined) {
+      for (let c = 0; c < N; c++) { goal[c] = d.value(state.q, k, c); if (!Number.isNaN(goal[c])) hasData = true; }
     }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    // keep the region outline floating just above the tallest columns
-    outline.scale.setScalar(1 + columnHeightUnits(RANGE_CM, state.kmPerCm) + 0.004);
-    const month = grid.months[state.t];
-    nodata.hidden = any;
-    if (!any) document.getElementById('globe-nodata-why')!.textContent =
-      grid.missing_reason[month] ?? (state.q === 1 ? grid.gws_missing_reason[month] : '') ?? 'No solution for this month';
+    mesh.visible = hasData;
+    nodata.hidden = hasData;
+    if (!hasData) {
+      document.getElementById('globe-nodata-why')!.textContent = k === undefined
+        ? (month >= '2017-07' && month <= '2018-05'
+          ? 'Mission gap: GRACE ended in 2017 and GRACE-FO began science data in mid-2018'
+          : 'No GRACE/GRACE-FO solution for this month')
+        : 'GLDAS land-surface model not yet available for this month';
+    }
     monthOut.textContent = monthLabel(month);
     slider.value = String(state.t);
     slider.setAttribute('aria-valuetext', monthLabel(month));
     exagOut.textContent = `1 cm of water is drawn ${fmt(state.kmPerCm, 0)} km tall (exaggeration ×${(state.kmPerCm * 1e5).toLocaleString('en-IN')})`;
-    (window as unknown as { __columns: unknown }).__columns = { kmPerCm: state.kmPerCm, month, baseCm: COLUMN_BASE_CM, sampleHeight: columnHeightUnits(10, state.kmPerCm) };
-    dirty = true;
+    outline.scale.setScalar(1 + columnHeightUnits(RANGE_CM, state.kmPerCm) + 0.004);
+    (window as unknown as { __columns: unknown }).__columns = {
+      kmPerCm: state.kmPerCm, month, baseCm: COLUMN_BASE_CM, hasData, nCells: N,
+      sampleHeight: columnHeightUnits(10, state.kmPerCm),
+    };
+    settling = true; dirty = true;
   }
 
-  // camera + controls
+  function applyInstances(snap: boolean) {
+    let moving = false;
+    for (let c = 0; c < N; c++) {
+      const g = goal[c];
+      if (Number.isNaN(g)) { dummy.position.copy(pos[c]); dummy.scale.set(0, 0, 0); }
+      else {
+        let v = shown[c];
+        if (Number.isNaN(v) || snap) v = g;
+        else if (Math.abs(g - v) > 0.05) { v += (g - v) * 0.22; moving = true; } else v = g;
+        shown[c] = v;
+        dummy.position.copy(pos[c]); dummy.quaternion.copy(quat[c]);
+        dummy.scale.set(sx[c], sy[c], Math.max(columnHeightUnits(v, state.kmPerCm), 0.0004));
+        const rgb = diverging(Math.max(0, Math.min(1, 0.5 + v / RANGE_CM / 2))).match(/\d+/g)!;
+        color.setRGB(+rgb[0] / 255, +rgb[1] / 255, +rgb[2] / 255, THREE.SRGBColorSpace);
+        mesh.setColorAt(c, color);
+      }
+      dummy.updateMatrix();
+      mesh.setMatrixAt(c, dummy.matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    settling = moving;
+  }
+
+  // camera
   const target = normal.clone();
   camera.up.copy(normal);
   const south = new THREE.Vector3(0, -1, 0).addScaledVector(normal, normal.y).normalize();
-  const camAt = (dist: number) => camera.position.copy(target).addScaledVector(normal, dist * 0.84).addScaledVector(south, dist * 0.54);
+  const east0 = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), normal).normalize();
+  const camAt = (dist: number, sway = 0) => camera.position.copy(target)
+    .addScaledVector(normal, dist * 0.8).addScaledVector(south, dist * 0.6 * Math.cos(sway)).addScaledVector(east0, dist * 0.6 * Math.sin(sway));
   const controls = new OrbitControls(camera, canvas);
   controls.target.copy(target);
   controls.enableDamping = true; controls.enablePan = false;
-  controls.minDistance = 0.18; controls.maxDistance = 3.2; controls.maxPolarAngle = Math.PI * 0.47;
+  controls.minDistance = 0.2; controls.maxDistance = 3.5; controls.maxPolarAngle = Math.PI * 0.48;
   controls.enabled = false;
   controls.addEventListener('change', () => { dirty = true; });
-  const FINAL = stage.clientWidth < stage.clientHeight ? 1.45 : 0.95; // further back on portrait screens
-  camAt(reduced ? FINAL : 3.0);
-  controls.update();
+  const finalDist = () => (stage.clientWidth < stage.clientHeight ? 1.45 : 0.95);
+  camAt(reduced ? finalDist() : 3.0);
   canvas.style.touchAction = 'pan-y';
-  const setExplore = (on: boolean) => {
+
+  // full-screen explore mode
+  let exploring = false;
+  function setExplore(on: boolean) {
+    exploring = on;
+    ui.classList.toggle('fullscreen', on);
+    document.body.classList.toggle('noscroll', on);
     controls.enabled = on;
     canvas.style.touchAction = on ? 'none' : 'pan-y';
-    explore.setAttribute('aria-pressed', String(on));
-    explore.textContent = on ? 'Resume scrolling' : 'Free explore: drag to rotate, pinch to zoom';
-    stage.classList.toggle('exploring', on);
-  };
-  explore.addEventListener('click', () => setExplore(!controls.enabled));
+    explore.hidden = on; closeBtn.hidden = !on;
+    if (!on) { camera.up.copy(normal); camAt(finalDist()); }
+    (window as unknown as { __exploring: boolean }).__exploring = on;
+    requestAnimationFrame(resize);
+    if (on) closeBtn.focus(); else explore.focus();
+  }
+  explore.addEventListener('click', () => setExplore(true));
+  closeBtn.addEventListener('click', () => setExplore(false));
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && exploring) setExplore(false); });
 
   const resize = () => {
     const w = stage.clientWidth, h = stage.clientHeight;
     if (!w || !h) return;
     renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = true;
-    haloMat.resolution.set(w, h); coreMat.resolution.set(w, h);
-    lineMats.forEach((m) => m.resolution.set(w, h));
-    haloMat.linewidth = w < 520 ? 5 : 7; coreMat.linewidth = w < 520 ? 2.5 : 3.5;
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    Object.values(mats).forEach((m) => m.resolution.set(w, h));
+    mats.nwHalo.linewidth = w < 520 ? 5 : 7; mats.nwCore.linewidth = w < 520 ? 2.5 : 3.5;
+    dirty = true;
   };
   new ResizeObserver(resize).observe(stage);
   resize();
 
-  // render loop (only draws when something changed and the stage is on screen)
-  let visible = false, diveT = reduced ? 1 : 0, last = performance.now(), lastStep = 0;
+  let visible = false, diveT = reduced ? 1 : 0, last = performance.now(), lastStep = 0, swayT = 0;
   new IntersectionObserver((es) => { visible = es[0].isIntersecting; if (!visible) pause(); }, { threshold: 0.05 }).observe(stage);
   const loop = (now: number) => {
     requestAnimationFrame(loop);
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     if (!visible) return;
-    if (diveT < 1) { // dive from orbit
-      diveT = Math.min(1, diveT + dt / 2.8);
+    if (!exploring) {
+      if (diveT < 1) diveT = Math.min(1, diveT + dt / 2.8);
       const e = 1 - Math.pow(1 - diveT, 3);
-      camAt(3.0 + (FINAL - 3.0) * e);
-      dirty = true;
-    }
-    if (state.playing && now - lastStep > 380) { lastStep = now; state.t = state.t >= nt - 1 ? 0 : state.t + 1; update(); }
-    if (controls.enabled) controls.update();
-    else camera.lookAt(target);
+      if (!reduced) swayT += dt;
+      camAt(3.0 + (finalDist() - 3.0) * e, reduced ? 0 : 0.42 * Math.sin(swayT * 0.22)); // slow sway shows the 3D shape
+      camera.lookAt(target);
+      if (diveT < 1 || !reduced) dirty = true;
+    } else controls.update();
+    if (state.playing && now - lastStep > 420) { lastStep = now; state.t = state.t >= months.length - 1 ? 0 : state.t + 1; setTargets(); }
+    if (settling && hasData) { applyInstances(reduced); dirty = true; }
     if (dirty) { renderer.render(scene, camera); dirty = false; }
   };
   requestAnimationFrame(loop);
@@ -217,11 +231,11 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
   function play() { state.playing = true; playBtn.innerHTML = '&#10074;&#10074;'; playBtn.setAttribute('aria-label', 'Pause'); }
   function pause() { state.playing = false; playBtn.innerHTML = '&#9654;'; playBtn.setAttribute('aria-label', 'Play'); }
   playBtn.addEventListener('click', () => (state.playing ? pause() : play()));
-  slider.addEventListener('input', () => { pause(); state.t = +slider.value; update(); });
-  exag.addEventListener('input', () => { state.kmPerCm = +exag.value; update(); });
+  slider.addEventListener('input', () => { pause(); state.t = +slider.value; setTargets(); });
+  exag.addEventListener('input', () => { state.kmPerCm = +exag.value; setTargets(); });
   document.querySelectorAll<HTMLButtonElement>('#globe [data-gq]').forEach((b) => b.addEventListener('click', () => {
     document.querySelectorAll<HTMLButtonElement>('#globe [data-gq]').forEach((o) => { o.classList.toggle('on', o === b); o.setAttribute('aria-pressed', String(o === b)); });
-    state.q = b.dataset.gq === 'tws' ? 0 : 1; popup.hidden = true; update();
+    state.q = b.dataset.gq === 'tws' ? 0 : 1; popup.hidden = true; setTargets();
   }));
 
   // tap a column for its time series
@@ -233,34 +247,30 @@ export async function initColumns(tier: 'full' | 'lite'): Promise<ColumnsHandle>
     const r = canvas.getBoundingClientRect();
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
-    const hit = ray.intersectObject(mesh)[0];
+    const hit = mesh.visible ? ray.intersectObject(mesh)[0] : undefined;
     if (!hit || hit.instanceId === undefined) { popup.hidden = true; return; }
-    const j = Math.floor(hit.instanceId / nx), i = hit.instanceId % nx;
-    showPopup(j, i);
+    showPopup(hit.instanceId);
   });
   document.getElementById('globe-popup-close')!.addEventListener('click', () => { popup.hidden = true; });
-  function showPopup(j: number, i: number) {
-    const s = Array.from(frames.cellSeries(state.q, j, i));
+  function showPopup(c: number) {
+    const s = months.map((m) => { const k = stored.get(m); return k === undefined ? NaN : d.value(state.q, k, c); });
     const fin = s.filter((v) => !Number.isNaN(v));
-    const lo = Math.min(-1, ...fin), hi = Math.max(1, ...fin);
+    const lo = Math.min(-1, ...fin), hi = Math.max(1, ...fin), nt = months.length;
     const X = (k: number) => 30 + (244 * k) / (nt - 1), Y = (v: number) => 104 - ((v - lo) / (hi - lo)) * 96;
-    let d = '', pen = false;
-    s.forEach((v, k) => { if (Number.isNaN(v)) { pen = false; return; } d += `${pen ? 'L' : 'M'}${X(k).toFixed(1)} ${Y(v).toFixed(1)}`; pen = true; });
+    let path = '', pen = false;
+    s.forEach((v, k) => { if (Number.isNaN(v)) { pen = false; return; } path += `${pen ? 'L' : 'M'}${X(k).toFixed(1)} ${Y(v).toFixed(1)}`; pen = true; });
+    const now = s[state.t];
     document.getElementById('globe-popup-title')!.textContent =
-      `${state.q === 0 ? 'Total water' : 'Groundwater'} · ${grid.lat[j].toFixed(2)}°N ${grid.lon[i].toFixed(2)}°E · ${monthLabel(grid.months[state.t])}: ${Number.isNaN(s[state.t]) ? 'no data' : fmt(s[state.t], 1) + ' cm'}`;
+      `${state.q === 0 ? 'Total water' : 'Groundwater'} · ${d.lat[c].toFixed(2)}°N ${d.lon[c].toFixed(2)}°E · ${monthLabel(months[state.t])}: ${Number.isNaN(now) ? 'no data' : Math.abs(now) >= 127 ? (now < 0 ? 'below −127 cm' : 'above +127 cm') + ' (file limit)' : fmt(now, 0) + ' cm'}`;
     document.getElementById('globe-popup-svg')!.innerHTML =
-      `<line x1="30" x2="274" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)"/><path d="${d}" fill="none" stroke="var(--jpl)" stroke-width="1.3"/>
+      `<line x1="30" x2="274" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--line)"/><path d="${path}" fill="none" stroke="var(--jpl)" stroke-width="1.3"/>
        <line x1="${X(state.t)}" x2="${X(state.t)}" y1="8" y2="104" stroke="var(--ink)" stroke-dasharray="2 2"/>
        <text x="26" y="${Y(hi) + 4}" text-anchor="end">${Math.round(hi)}</text><text x="26" y="${Y(lo) + 2}" text-anchor="end">${Math.round(lo)}</text>
-       <text x="30" y="117">${grid.months[0].slice(0, 4)}</text><text x="274" y="117" text-anchor="end">${grid.months[nt - 1].slice(0, 4)}</text>`;
+       <text x="30" y="117">${months[0].slice(0, 4)}</text><text x="274" y="117" text-anchor="end">${months[nt - 1].slice(0, 4)}</text>`;
     popup.hidden = false;
   }
 
-  update();
+  setTargets();
+  applyInstances(true);
   return { play, pause };
-}
-
-function d3rgb(s: string): [number, number, number] {
-  const m = s.match(/\d+/g)!;
-  return [+m[0] / 255, +m[1] / 255, +m[2] / 255];
 }

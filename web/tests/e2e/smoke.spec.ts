@@ -157,12 +157,20 @@ test('3D columns: loads, plays, exaggeration label matches applied scale, missin
   await expect(page.locator('#globe-month')).toHaveText('Aug 2010', { timeout: 30000 });
   await page.waitForTimeout(3500); // dive animation
   await page.screenshot({ path: `${SHOTS}/${info.project.name}-globe.png` });
-  await expect(page.locator('#globe-exag-out')).toContainText('4 km tall');
+  await expect(page.locator('#globe-exag-out')).toContainText('5 km tall');
   const c = await page.evaluate(() => (window as unknown as { __columns: { kmPerCm: number; sampleHeight: number; baseCm: number } }).__columns);
-  expect(c.kmPerCm).toBe(4);
-  expect(c.sampleHeight).toBeCloseTo(((c.baseCm + 10) * 4) / 6371, 9);
+  expect(c.kmPerCm).toBe(5);
+  expect(c.sampleHeight).toBeCloseTo(((c.baseCm + 10) * 5) / 6371, 9);
   await page.locator('#globe-exag').evaluate((el) => { (el as HTMLInputElement).value = '8'; el.dispatchEvent(new Event('input')); });
   await expect(page.locator('#globe-exag-out')).toContainText('8 km tall');
+  // full-screen explore mode opens and closes
+  await page.locator('#globe-explore').click();
+  await expect(page.locator('#globe-ui')).toHaveClass(/fullscreen/);
+  expect(await page.evaluate(() => (window as unknown as { __exploring: boolean }).__exploring)).toBe(true);
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-globe-fullscreen.png` });
+  await page.locator('#globe-close').click();
+  await expect(page.locator('#globe-ui')).not.toHaveClass(/fullscreen/);
   await page.locator('#globe-play').click();
   await page.waitForTimeout(1500);
   await expect(page.locator('#globe-month')).not.toHaveText('Aug 2010');

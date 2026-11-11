@@ -178,14 +178,16 @@
   <div class="wrap">
     <p class="eyebrow">3D &middot; Diving onto India</p>
     <h2>The water, standing on the globe</h2>
-    <p class="lead">Each column is one cell of the real GRACE grid. Taller and bluer means more water than the 2004&ndash;2009 average; shorter and browner means less. Press play and watch the monsoon rise and fall while north-west India slowly sinks.</p>
-    <div class="panel globe-ui">
+    <p class="lead">Each column is one cell of the real GRACE grid over India. Taller and bluer means more water than the 2004&ndash;2009 average; shorter and browner means less. Press play and watch the monsoon rise and fall while north-west India slowly sinks. Open <b>Explore in 3D</b> to spin the globe yourself.</p>
+    <div class="panel globe-ui" id="globe-ui">
       <div class="toggles">
         <div class="seg" role="group" aria-label="Quantity">
           <button class="seg-btn on" data-gq="tws" aria-pressed="true">Total water</button>
           <button class="seg-btn" data-gq="gws" aria-pressed="false">Groundwater</button>
         </div>
-        <a class="btn linkbtn" href="#map">Flat map</a>
+        <a class="btn linkbtn" href="#map" id="globe-flat">Flat map</a>
+        <button class="btn primary" id="globe-explore">Explore in 3D (full screen)</button>
+        <button class="btn primary" id="globe-close" hidden>&times; Close 3D view</button>
       </div>
       <div class="globe-stage" id="globe-stage">
         <canvas id="globe-canvas" role="img" aria-label="3D view of north India with a column for each grid cell showing water storage anomaly"></canvas>
@@ -205,17 +207,19 @@
       </div>
       <div class="controls">
         <label for="globe-exag" class="small" style="flex:0 0 auto">Height exaggeration</label>
-        <input id="globe-exag" type="range" min="1" max="12" step="1" value="4">
-        <button class="btn" id="globe-explore" aria-pressed="false">Free explore: drag to rotate, pinch to zoom</button>
+        <input id="globe-exag" type="range" min="1" max="12" step="1" value="5">
+        <span class="small muted globe-hint">In full screen: drag to rotate, pinch or scroll to zoom, tap a column for its history.</span>
       </div>
     </div>
     <details class="deeper">
       <summary>Go deeper: how to read the columns</summary>
       <ul>
         <li>Columns stand on a base of 60 cm, so a cell at the 2004&ndash;2009 average is 60 cm &times; the exaggeration tall, and a cell 60 cm below average is flat. Height = (60 cm + anomaly) &times; exaggeration.</li>
-        <li>The data are the same monthly JPL mascon frames as the flat map (gain factors applied). Neighbouring columns move together because the real measurement is a ~300 km mascon.</li>
+        <li>Data: monthly JPL mascons (gain factors applied), processed the same way as the flat map but for the whole of India, stored in whole centimetres. Only grid cells at least half inside India are shown. Neighbouring columns move together because the real measurement is a ~300 km mascon.</li>
+        <li>About 45 cells in the Himalaya and north-east India have very large values (up to about 360 cm) where JPL's gain factors are large. The compact 3D file stores anything beyond &plusmn;127 cm as &plusmn;127 cm and the popup says so. Colours already saturate at &plusmn;40 cm.</li>
+        <li>Between months the columns glide for about a third of a second. That glide is animation only; every resting frame is a real monthly value.</li>
         <li>Months with no satellite solution show "No data"; nothing is interpolated.</li>
-        <li>Thin lines are the state boundaries of India (DataMeet India community file, CC BY 4.0). South of 20&deg;N, where we did not process data, they lie on the ground; over the data they float above the columns so they stay visible. Their height means nothing.</li>
+        <li>Thin lines are the state boundaries of India (DataMeet India community file, CC BY 4.0). They float above the columns so they stay visible; their height means nothing.</li>
         <li>The thick black outline is our analysis region (Punjab, Haryana, Delhi, Rajasthan).</li>
       </ul>
     </details>

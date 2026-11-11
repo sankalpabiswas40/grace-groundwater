@@ -127,3 +127,48 @@ export function evalFit(fit: Fit, t: number, parts: { trend?: boolean; seasonal?
 export function fmt(x: number, digits = 1): string {
   return x.toLocaleString('en-IN', { minimumFractionDigits: digits, maximumFractionDigits: digits });
 }
+
+/** Every calendar month from first to last (YYYY-MM), inclusive. */
+export function calendarMonths(first: string, last: string): string[] {
+  let y = +first.slice(0, 4), m = +first.slice(5);
+  const y1 = +last.slice(0, 4), m1 = +last.slice(5), out: string[] = [];
+  while (y < y1 || (y === y1 && m <= m1)) {
+    out.push(`${y}-${String(m).padStart(2, '0')}`);
+    if (++m === 13) { m = 1; y++; }
+  }
+  return out;
+}
+
+/** Decode Int8 whole centimetres; the sentinel becomes NaN. */
+export function decodeInt8(buf: ArrayBuffer, sentinel: number): Float32Array {
+  const src = new Int8Array(buf), out = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i++) out[i] = src[i] === sentinel ? NaN : src[i];
+  return out;
+}
+
+export interface India3D {
+  months: string[]; // only months that have a satellite solution
+  nCells: number;
+  lat: number[];
+  lon: number[];
+  gldasLast: string;
+  /** cm for block (0 = TWS, 1 = GWS), stored-month index, cell */
+  value(block: number, m: number, c: number): number;
+}
+export function makeIndia3D(meta: { months: string[]; n_cells: number; cell_lat: number[]; cell_lon: number[]; gldas_last_month: string }, data: Float32Array): India3D {
+  const nm = meta.months.length, n = meta.n_cells;
+  if (data.length !== 2 * nm * n) throw new Error('india3d.bin has an unexpected size');
+  return { months: meta.months, nCells: n, lat: meta.cell_lat, lon: meta.cell_lon, gldasLast: meta.gldas_last_month, value: (b, m, c) => data[(b * nm + m) * n + c] };
+}
+let indiaPromise: Promise<India3D> | null = null;
+export function loadIndia3D(): Promise<India3D> {
+  if (!indiaPromise) {
+    indiaPromise = (async () => {
+      const meta = await getJSON<{ months: string[]; n_cells: number; cell_lat: number[]; cell_lon: number[]; gldas_last_month: string; file: string; nan_sentinel: number }>('data/india3d.json');
+      const r = await fetch(url('data/' + meta.file));
+      if (!r.ok) throw new Error('Could not load india3d.bin');
+      return makeIndia3D(meta, decodeInt8(await r.arrayBuffer(), meta.nan_sentinel));
+    })();
+  }
+  return indiaPromise;
+}

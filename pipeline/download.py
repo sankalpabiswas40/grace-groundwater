@@ -5,6 +5,7 @@
     python pipeline/download.py boundaries   # state boundary file
     python pipeline/download.py jpl          # JPL mascons (needs login)
     python pipeline/download.py gldas        # GLDAS Noah, display box only (needs login)
+    python pipeline/download.py gldas_india  # GLDAS Noah, all of India, for the 3D view
     python pipeline/download.py all
 
 Credentials are never written into this code, the logs or Git. earthaccess stores
@@ -122,7 +123,7 @@ def jpl():
     print("JPL done:", p[0])
 
 
-def gldas():
+def gldas(box=None, subdir="gldas", key="gldas_noah"):
     """Fetch only the display box (plus a 1-degree margin) for each month through
     NASA's cloud OPeNDAP service. The values are the original model values; only the
     area is cut down. One small netCDF file per month."""
@@ -136,12 +137,13 @@ def gldas():
     print(f"{len(names)} GLDAS months found: {names[0]} ... {names[-1]}")
     # GLDAS 0.25 degree grid: lat -59.875..89.875 (600), lon -179.875..179.875 (1440).
     # The index range is verified against the returned lat/lon in process.py.
-    j0 = round((C.LAT_MIN - 1 + 59.875 + 0.125) / 0.25); j1 = round((C.LAT_MAX + 1 + 59.875 - 0.125) / 0.25)
-    i0 = round((C.LON_MIN - 1 + 179.875 + 0.125) / 0.25); i1 = round((C.LON_MAX + 1 + 179.875 - 0.125) / 0.25)
+    la0, la1, lo0, lo1 = box or (C.LAT_MIN, C.LAT_MAX, C.LON_MIN, C.LON_MAX)
+    j0 = round((la0 - 1 + 59.875 + 0.125) / 0.25); j1 = round((la1 + 1 + 59.875 - 0.125) / 0.25)
+    i0 = round((lo0 - 1 + 179.875 + 0.125) / 0.25); i1 = round((lo1 + 1 + 179.875 - 0.125) / 0.25)
     ce = ";".join([f"/{v}[0:1:0][{j0}:1:{j1}][{i0}:1:{i1}]" for v in C.GLDAS_VARS]
                   + [f"/lat[{j0}:1:{j1}]", f"/lon[{i0}:1:{i1}]", "/time"])
     session = ea.get_requests_https_session()
-    d = C.RAW / "gldas"; d.mkdir(parents=True, exist_ok=True)
+    d = C.RAW / subdir; d.mkdir(parents=True, exist_ok=True)
     got = 0
     for k, n in enumerate(names):
         dest = d / n.replace(".nc4", ".subset.nc4")
@@ -159,19 +161,24 @@ def gldas():
         dest.write_bytes(r.content); got += 1
         print(f"\r  {k+1}/{len(names)} {n}", end="")
     print(f"\nGLDAS done ({got} new files).")
-    record("gldas_noah", {
+    record(key, {
         "short_name": C.GLDAS_SHORT_NAME, "version": C.GLDAS_VERSION, "doi": C.GLDAS_DOI,
         "host": "NASA GES DISC (via opendap.earthdata.nasa.gov)",
-        "variables": C.GLDAS_VARS, "subset": "display box plus 1 degree margin, "
+        "variables": C.GLDAS_VARS, "subset": f"box {la0}-{la1}N {lo0}-{lo1}E plus 1 degree margin, "
         f"lat index {j0}-{j1}, lon index {i0}-{i1}; values unchanged",
         "first_file": names[0], "last_file": names[-1], "n_months": len(names),
         "download_date": today()})
 
 
+def gldas_india():
+    """Same GLDAS months for the whole of India (used by the 3D view)."""
+    gldas(box=C.INDIA_BOX, subdir="gldas_india", key="gldas_noah_india")
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     steps = {"login": [login], "csr": [csr], "boundaries": [boundaries], "jpl": [jpl],
-             "gldas": [gldas], "all": [csr, boundaries, jpl, gldas]}
+             "gldas": [gldas], "gldas_india": [gldas_india], "all": [csr, boundaries, jpl, gldas, gldas_india]}
     if cmd not in steps:
         raise SystemExit(__doc__)
     for f in steps[cmd]:

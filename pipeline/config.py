@@ -41,3 +41,6 @@ CSR_DOI = "10.15781/cgq9-nh24"
 STATES_BASE = "https://raw.githubusercontent.com/datameet/maps/master/States/"
 STATES_FILES = ["Admin2.shp", "Admin2.shx", "Admin2.dbf", "Admin2.prj", "Admin2.cpg"]
 NW_STATES = ["Punjab", "Haryana", "Delhi", "Rajasthan"]
+
+# Whole-of-India box for the 3D columns view: lat_min, lat_max, lon_min, lon_max
+INDIA_BOX = (6.0, 38.0, 66.0, 98.0)

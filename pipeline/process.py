@@ -133,8 +133,8 @@ def load_csr(months, lat, lon):
     return out, sorted(used)
 
 
-def load_gldas(months, lat, lon):
-    files = sorted(glob.glob(str(C.RAW / "gldas" / "*.subset.nc4")))
+def load_gldas(months, lat, lon, subdir="gldas"):
+    files = sorted(glob.glob(str(C.RAW / subdir / "*.subset.nc4")))
     comp = {k: np.full((len(months), lat.size, lon.size), np.nan) for k in ("sm", "swe", "can")}
     pos = {m: k for k, m in enumerate(months)}
     last = None

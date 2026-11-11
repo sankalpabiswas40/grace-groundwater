@@ -23,3 +23,6 @@
   total water vs groundwater, height exaggeration (always displayed), tap-a-column time series, free explore and a Flat map button.
 - Added the underground chapter (#underground): a schematic 3D cutaway of alluvium whose water table follows our real NW India groundwater series,
   using delta_h = delta_GWS / Sy. Default Sy = 0.12 (Rodell et al. 2009); slider range 0.03-0.32 from Johnson (1967), USGS Water-Supply Paper 1662-D.
+- 3D columns view rebuilt: columns now cover all of India (new pipeline step process_india.py and an India-wide GLDAS download),
+  glide smoothly between months, sway gently in the page, and open in a full-screen explore mode where you can rotate and zoom the globe.
+  All Indian state outlines are drawn. The compact 3D file stores whole centimetres and flags values beyond +/-127 cm.

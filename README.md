@@ -17,6 +17,7 @@ See PLAN.md for the data products and method. Full rerun instructions are added 
 ## Process and export (after downloading)
     & $HOME\grace-groundwater-venv\Scripts\python.exe pipeline\process.py
     & $HOME\grace-groundwater-venv\Scripts\python.exe pipeline\export.py
+    & $HOME\grace-groundwater-venv\Scripts\python.exe pipeline\process_india.py   # India-wide file for the 3D view
     & $HOME\grace-groundwater-venv\Scripts\python.exe pipeline\quicklook.py
 
 ## Website (needs Node.js)

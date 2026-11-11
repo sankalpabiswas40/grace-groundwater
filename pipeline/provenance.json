@@ -57,5 +57,24 @@
     "last_file": "GLDAS_NOAH025_M.A202607.021.nc4",
     "n_months": 292,
     "download_date": "2026-11-11"
+  },
+  "gldas_noah_india": {
+    "short_name": "GLDAS_NOAH025_M",
+    "version": "2.1",
+    "doi": "10.5067/SXAVCZFAQLNO",
+    "host": "NASA GES DISC (via opendap.earthdata.nasa.gov)",
+    "variables": [
+      "SoilMoi0_10cm_inst",
+      "SoilMoi10_40cm_inst",
+      "SoilMoi40_100cm_inst",
+      "SoilMoi100_200cm_inst",
+      "SWE_inst",
+      "CanopInt_inst"
+    ],
+    "subset": "box 6.0-38.0N 66.0-98.0E plus 1 degree margin, lat index 260-395, lon index 980-1115; values unchanged",
+    "first_file": "GLDAS_NOAH025_M.A200204.021.nc4",
+    "last_file": "GLDAS_NOAH025_M.A202607.021.nc4",
+    "n_months": 292,
+    "download_date": "2026-11-11"
   }
 }

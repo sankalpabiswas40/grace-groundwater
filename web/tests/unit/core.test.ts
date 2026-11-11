@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeFrames, evalFit, makeFrames, type Grid } from '../../src/data';
+import { calendarMonths, decodeFrames, decodeInt8, evalFit, makeFrames, makeIndia3D, type Grid } from '../../src/data';
 import { bouguerMicroGal, columnHeightUnits, COLUMN_BASE_CM, G, orbitalSpeed, rangeChange, subsolarPoint, waterTableChange } from '../../src/physics';
 
 describe('data loader', () => {
@@ -23,6 +23,21 @@ describe('data loader', () => {
     expect(Array.from(f.cellSeries(1, 1, 2))).toEqual([17, 23]);
     expect(f.frame(1, 1).length).toBe(6);
     expect(() => makeFrames(grid, new Float32Array(5))).toThrow();
+  });
+  it('decodes the India 3D file (Int8 cm, sentinel to NaN) and indexes it', () => {
+    const raw = new Int8Array([1, -128, 3, 4, 5, 6, 7, 8]); // 2 blocks x 2 months x 2 cells
+    const f = decodeInt8(raw.buffer, -128);
+    expect(Number.isNaN(f[1])).toBe(true);
+    const d = makeIndia3D({ months: ['2002-04', '2002-05'], n_cells: 2, cell_lat: [10, 11], cell_lon: [77, 78], gldas_last_month: '2002-05' }, f);
+    expect(d.value(0, 0, 0)).toBe(1);
+    expect(d.value(0, 1, 1)).toBe(4);
+    expect(d.value(1, 0, 0)).toBe(5);
+    expect(d.value(1, 1, 1)).toBe(8);
+    expect(() => makeIndia3D({ months: ['a'], n_cells: 3, cell_lat: [], cell_lon: [], gldas_last_month: '' }, f)).toThrow();
+  });
+  it('builds a calendar month list across year ends', () => {
+    expect(calendarMonths('2017-11', '2018-02')).toEqual(['2017-11', '2017-12', '2018-01', '2018-02']);
+    expect(calendarMonths('2002-04', '2026-09').length).toBe(294);
   });
   it('evaluates the fitted model parts', () => {
     const fit = { coef: [1, -2, 3, 0, 0, 0], t0: 2014 } as never;
