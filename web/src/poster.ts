@@ -61,7 +61,7 @@ async function main() {
     svg.append('path').attr('d', path(outlines.nw as never)).attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', opts.labels ? 5 : 2.6);
     svg.append('path').attr('d', path(outlines.nw as never)).attr('fill', 'none').attr('stroke', '#111').attr('stroke-width', opts.labels ? 2.6 : 1.3);
     if (opts.labels) {
-      const fs = W / 52;
+      const fs = W / 36;
       const cg = svg.append('g').selectAll('g').data(CITIES).join('g').attr('transform', (d) => { const p = proj([d[2], d[1]])!; return `translate(${p[0]},${p[1]})`; });
       cg.append('circle').attr('r', fs * 0.28).attr('fill', '#111').attr('stroke', '#fff').attr('stroke-width', fs * 0.1);
       cg.append('text').attr('x', fs * 0.5).attr('y', (d) => (d[0] === 'Jaipur' ? fs * 1.05 : -fs * 0.4)).text((d) => d[0])
@@ -75,7 +75,7 @@ async function main() {
       [-range, -range / 2, 0, range / 2, range].forEach((v, k) => svg.append('text').attr('x', bx + (bw * k) / 4).attr('y', by + bh + fs * 1.05).attr('text-anchor', 'middle').style('font-size', `${fs * 0.82}px`).text((v > 0 ? '+' : '') + v));
       svg.append('text').attr('x', bx).attr('y', by - fs * 0.55).style('font', `600 ${fs * 0.85}px var(--sans)`).text('mm of water per year (brown = losing)');
     }
-    if (opts.title) svg.append('text').attr('x', b[0][0] + 6).attr('y', b[0][1] + 16).style('font', '600 13px var(--sans)').attr('paint-order', 'stroke').attr('stroke', '#f6f4ee').attr('stroke-width', 4).text(opts.title);
+    if (opts.title) { const ts = W / 21; svg.append('text').attr('x', b[0][0] + ts * 0.4).attr('y', b[0][1] + ts * 1.2).style('font', `600 ${ts}px var(--sans)`).attr('paint-order', 'stroke').attr('stroke', '#f6f4ee').attr('stroke-width', ts * 0.3).text(opts.title); }
   }
   drawMap(document.getElementById('p-map')!, trend['gws_jpl'] as (number | null)[], 60, { labels: true });
   const fa = frames.frame(0, grid.months.indexOf('2010-05')), fb = frames.frame(0, grid.months.indexOf('2010-08'));
@@ -117,8 +117,10 @@ async function main() {
       .attr('stroke', '#14202e').attr('stroke-width', 1.8).attr('stroke-dasharray', '9 6');
     // direct labels
     const lab = (tx: number, ty: number, text: string, col: string, w = 600) => svg.append('text').attr('x', tx).attr('y', ty).style('font', `${w} ${fs * 1.05}px var(--sans)`).style('fill', col).attr('paint-order', 'stroke').attr('stroke', '#f6f4ee').attr('stroke-width', 5).text(text);
-    lab(x(2003.1), y(21), 'JPL mascons', 'var(--jpl)');
-    lab(x(2003.1) + fs * 8.2, y(21), 'CSR mascons', 'var(--csr)');
+    svg.append('line').attr('x1', x(2019.2)).attr('x2', x(2019.9)).attr('y1', y(13)).attr('y2', y(13)).attr('stroke', 'var(--jpl)').attr('stroke-width', 3);
+    lab(x(2020.05), y(13) + fs * 0.35, 'JPL mascons', 'var(--jpl)');
+    svg.append('line').attr('x1', x(2022.6)).attr('x2', x(2023.3)).attr('y1', y(13)).attr('y2', y(13)).attr('stroke', 'var(--csr)').attr('stroke-width', 3);
+    lab(x(2023.45), y(13) + fs * 0.35, 'CSR mascons', 'var(--csr)');
     lab(x(2011.2), y(evalFit(fit, 2011.2, { trend: true })) - fs * 2.3, `trend ${sign(fit.slope_cm_per_yr)} cm per year`, '#14202e');
     lab(x(2017.96), m.t + fs * 1.3, 'no data', '#55606e', 400).attr('text-anchor', 'middle');
   }

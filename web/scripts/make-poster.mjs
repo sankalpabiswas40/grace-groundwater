@@ -26,12 +26,29 @@ if (!process.argv.includes('--hero-only')) {
   await pdf.waitForTimeout(800);
   await pdf.pdf({ path: '../poster/poster_A1.pdf', width: '594mm', height: '841mm', printBackground: true, pageRanges: '1' });
   await pdf.close();
-  // 3. PNG at 300 dpi (7016 x 9933 px)
-  const png = await browser.newPage({ viewport: { width: 2245, height: 3179 }, deviceScaleFactor: 3.125 });
+  // 3. PNG at 300 dpi (7016 x 9934 px). A single screenshot this tall exceeds the browser's
+  //    image limit and wraps around, so render horizontal strips and stitch them.
+  const DSF = 3.125, VW = 2245, VH = 3179, STRIPS = 6;
+  const png = await browser.newPage({ viewport: { width: VW, height: VH }, deviceScaleFactor: DSF });
   await png.goto(base + 'poster.html');
   await png.waitForFunction(() => window.__posterReady === true, null, { timeout: 60000 });
   await png.waitForTimeout(800);
-  await png.locator('#sheet').screenshot({ path: '../poster/poster_A1_300dpi.png' });
+  const sharp = (await import('sharp')).default;
+  const parts = [];
+  const stripH = Math.ceil(VH / STRIPS);
+  for (let k = 0; k < STRIPS; k++) {
+    const y = k * stripH, h = Math.min(stripH, VH - y);
+    const buf = await png.screenshot({ clip: { x: 0, y, width: VW, height: h } });
+    const meta = await sharp(buf).metadata();
+    parts.push({ input: buf, left: 0, top: Math.round(y * DSF), h: meta.height, w: meta.width });
+  }
+  const W = parts[0].w, H = parts[parts.length - 1].top + parts[parts.length - 1].h;
+  await sharp({ create: { width: W, height: H, channels: 3, background: '#f6f4ee' }, limitInputPixels: false })
+    .composite(parts.map(({ input, left, top }) => ({ input, left, top })))
+    .withMetadata({ density: 300 })
+    .png({ compressionLevel: 9 })
+    .toFile('../poster/poster_A1_300dpi.png');
+  console.log(`PNG ${W} x ${H} px`);
   // small preview for checking and sharing
   await png.close();
   const small = await browser.newPage({ viewport: { width: 2245, height: 3179 }, deviceScaleFactor: 0.75 });

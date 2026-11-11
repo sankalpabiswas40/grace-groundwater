@@ -29,3 +29,5 @@
 - Removed the quiz section and the About section (name and college details) at the author's request; the methods section is now titled "Behind the numbers" and carries the image and data credits.
 - Typography changed to locally bundled IBM Plex Sans / IBM Plex Mono and Source Serif 4 headings, with plainer corners and labels.
 - Hero satellites now use NASA's official GRACE-FO 3D model (compressed from 7 MB to 254 KB), flying facing each other as the real pair does.
+- Added an A1 print poster built from the real data (poster/poster_A1.pdf, poster_A1_300dpi.png, poster_preview.jpg) with the five authors and the QR code.
+  Rebuild with: npm run build, npm run preview, then node scripts/make-poster.mjs (inside web).
