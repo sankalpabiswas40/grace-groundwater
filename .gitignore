@@ -15,3 +15,5 @@ pipeline/processed/
 web/tests/e2e/shots/
 web/test-results/
 .claude/
+.dodsrc
+.urs_cookies
