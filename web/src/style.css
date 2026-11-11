@@ -236,3 +236,35 @@ main { overflow-x: clip; }
 body.noscroll { overflow: hidden; }
 .globe-hint { flex: 1 1 200px; }
 .globe-ui:not(.fullscreen) .globe-hint { display: none; }
+
+/* ---------- typography and plainer surfaces (locally bundled typefaces) ---------- */
+:root {
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, Menlo, monospace;
+  --serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+body { font: 400 17px/1.62 var(--sans); }
+h1, h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -.012em; line-height: 1.1; }
+h1 { font-size: clamp(2.3rem, 6.4vw, 4.4rem); font-weight: 560; }
+h2 { font-size: clamp(1.75rem, 3.8vw, 2.6rem); }
+h3 { font-family: var(--sans); font-weight: 600; letter-spacing: 0; }
+.lead { font-family: var(--serif); font-size: 1.2rem; line-height: 1.5; }
+.hero .sub { font-family: var(--serif); line-height: 1.45; }
+.mono { font-weight: 500; }
+.big { font-weight: 500; }
+.eyebrow { font: italic 500 1.02rem/1.2 var(--serif); letter-spacing: 0; text-transform: none; color: var(--muted); margin-bottom: .6rem; }
+.hero .eyebrow { color: #b9c8db; }
+.brand { font: 600 1rem var(--sans); letter-spacing: .01em; }
+.topbar nav a { font-size: .92rem; }
+.loader-title { font-family: var(--serif); font-size: 1.4rem; font-weight: 600; }
+.card-tag { font: 600 .82rem var(--sans); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.scroll-cue { font: 400 .85rem var(--sans); letter-spacing: 0; text-transform: none; }
+.badge { font: 400 .78rem/1.4 var(--sans); border-radius: 3px; }
+.counter-value { font-weight: 500; }
+.panel, .card { border-radius: 6px; }
+.btn, .seg, .icon-btn, .tier select, details.deeper, .popup { border-radius: 4px; }
+figure svg, figure canvas, .ug-stage { border-radius: 3px; }
+.counter { border-radius: 0 4px 4px 0; }
+.flow li { border-radius: 4px; }
+details.deeper > summary { font-weight: 600; }
+.chart text, #popup-svg text, #globe-popup-svg text, .svg-lab { font-family: var(--mono); }

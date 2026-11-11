@@ -2,6 +2,7 @@
 // GRACE-FO pair on a polar orbit. three.js is loaded lazily by main.ts.
 import * as THREE from 'three';
 import { latLonToVec, subsolarPoint } from './physics';
+import { url } from './data';
 
 export type Tier = 'full' | 'lite' | 'static';
 
@@ -134,18 +135,47 @@ export function initHero(
   scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ size: 1.6, sizeAttenuation: false, vertexColors: true })));
 
   // satellites
-  scene.add(new THREE.AmbientLight(0xaabbdd, 2.6));
+  scene.add(new THREE.AmbientLight(0xaabbdd, 1.6));
+  // fill light that follows the camera so the spacecraft stay readable on the night side (schematic lighting)
+  const fill = new THREE.DirectionalLight(0xffffff, 3.0);
+  scene.add(fill);
   const dl = new THREE.DirectionalLight(0xffffff, 2.2);
   dl.position.copy(sun).multiplyScalar(10);
   scene.add(dl);
   const sats = [makeSatellite(), makeSatellite()];
-  const SAT_SCALE = 0.016;
+  const SAT_SCALE = 0.027;
   sats.forEach((s) => { s.scale.setScalar(SAT_SCALE); scene.add(s); });
+  // Replace the simple stand-ins with NASA's official GRACE-FO model once it has loaded
+  // (model: NASA Visualization Technology Applications and Development, courtesy NASA/JPL-Caltech).
+  (async () => {
+    try {
+      const [{ GLTFLoader }, { MeshoptDecoder }, { RoomEnvironment }] = await Promise.all([
+        import('three/examples/jsm/loaders/GLTFLoader.js'),
+        import('three/examples/jsm/libs/meshopt_decoder.module.js'),
+        import('three/examples/jsm/environments/RoomEnvironment.js'),
+      ]);
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; // soft reflections for the foil
+      scene.environmentIntensity = 2.4;
+      const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      const gltf = await loader.loadAsync(url('models/grace-fo.glb'));
+      sats.forEach((s, k) => {
+        const m = k === 0 ? gltf.scene : gltf.scene.clone(true);
+        if (k === 1) m.rotation.y = Math.PI; // the two spacecraft fly facing each other
+        s.clear();
+        s.add(m);
+      });
+      (window as unknown as { __satModel: string }).__satModel = 'nasa';
+    } catch (e) {
+      console.warn('NASA satellite model not loaded; keeping the simple model', e);
+    }
+  })();
   const linkGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
   const link = new THREE.Line(linkGeo, new THREE.LineBasicMaterial({ color: 0x7fd0ee, transparent: true, opacity: 0.85 }));
   scene.add(link);
   // faint orbit ring (polar orbit through 77E)
-  const ORBIT_R = 1.11, ORBIT_LON = 77, GAP = 0.085;
+  const ORBIT_R = 1.16, ORBIT_LON = 84, GAP = 0.2;
   const eq = new THREE.Vector3(...latLonToVec(0, ORBIT_LON));
   const up = new THREE.Vector3(0, 1, 0);
   const ringPts: THREE.Vector3[] = [];
@@ -189,6 +219,7 @@ export function initHero(
     const dist = (camera.aspect > 1.05 ? 3.55 : 4.3) + 0.08 * Math.sin(t * 0.05);
     camera.position.set(...latLonToVec(lat, lon)).multiplyScalar(dist);
     camera.lookAt(0, 0, 0);
+    fill.position.copy(camera.position);
     // satellites: lead and trail
     const a = t * 0.16 + 0.2;
     sats.forEach((s, k) => {

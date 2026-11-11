@@ -171,7 +171,7 @@ export function initMethods(meta: Meta): void {
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe -m pytest pipeline\\tests</pre>
   <p class="small muted">Data files generated ${meta.generated}. Code repository: <a href="https://github.com/sankalpabiswas40/grace-groundwater" rel="noopener">github.com/sankalpabiswas40/grace-groundwater</a>.</p>
   <h3>Credits</h3>
-  <p class="small muted">Earth imagery: NASA Blue Marble Next Generation and NASA Black Marble (NASA Earth Observatory). GRACE and GRACE-FO are joint missions of NASA and DLR / GFZ. State boundaries: DataMeet India community (CC BY 4.0). This is a student project and is not endorsed by NASA, JPL or any agency.</p>
+  <p class="small muted">Earth imagery: NASA Blue Marble Next Generation and NASA Black Marble (NASA Earth Observatory). GRACE-FO 3D model: NASA Visualization Technology Applications and Development (VTAD), courtesy NASA/JPL-Caltech. GRACE and GRACE-FO are joint missions of NASA and DLR / GFZ. Typefaces: IBM Plex and Source Serif 4 (SIL Open Font License). State boundaries: DataMeet India community (CC BY 4.0). This is a student project and is not endorsed by NASA, JPL or any agency.</p>
   <p class="small"><a href="#poster">Poster mode</a> (auto-playing loop for a screen beside the poster)</p>`;
   document.getElementById('methods-body')!.innerHTML = html;
 }

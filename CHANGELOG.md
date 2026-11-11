@@ -27,3 +27,5 @@
   glide smoothly between months, sway gently in the page, and open in a full-screen explore mode where you can rotate and zoom the globe.
   All Indian state outlines are drawn. The compact 3D file stores whole centimetres and flags values beyond +/-127 cm.
 - Removed the quiz section and the About section (name and college details) at the author's request; the methods section is now titled "Behind the numbers" and carries the image and data credits.
+- Typography changed to locally bundled IBM Plex Sans / IBM Plex Mono and Source Serif 4 headings, with plainer corners and labels.
+- Hero satellites now use NASA's official GRACE-FO 3D model (compressed from 7 MB to 254 KB), flying facing each other as the real pair does.
