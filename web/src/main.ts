@@ -1,6 +1,6 @@
 import './style.css';
 import { fmt, getJSON, monthLabel, url, type Meta } from './data';
-import { initGravity, initMethods, initQuiz, initSatellites, initWhy, type SatHandle } from './sections';
+import { initGravity, initMethods, initSatellites, initWhy, type SatHandle } from './sections';
 import type { HeroHandle, Tier } from './hero';
 import type { MapHandle } from './map';
 
@@ -123,8 +123,7 @@ async function boot() {
   document.getElementById('loader')!.classList.add('done');
   setTimeout(() => document.getElementById('loader')?.remove(), 700);
 
-  initGravity(); initQuiz(); initMethods(meta); void initWhy();
-  (document.getElementById('about-date')!).textContent = new Date(meta.generated).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' });
+  initGravity(); initMethods(meta); void initWhy();
   lazy('#satellites', initSats);
   lazy('#method', async () => { document.getElementById('flow')!.classList.add('in'); (await import('./curve')).initBar(); });
   lazy('#globe', async () => {

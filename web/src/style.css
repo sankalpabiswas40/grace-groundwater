@@ -174,20 +174,9 @@ details.deeper.small > summary { color: #7fd0ee; }
 .tbl th, .tbl td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .tbl td.num { font-family: var(--mono); text-align: right; }
 
-/* quiz */
-.q { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; margin: 1rem 0; }
-.q fieldset { border: 0; padding: 0; margin: 0; }
-.q legend { font-weight: 650; padding: 0; margin-bottom: .6rem; }
-.q .opt { display: block; width: 100%; text-align: left; min-height: 44px; margin: .35rem 0; padding: .55rem .8rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; cursor: pointer; }
-.q .opt:hover:not(:disabled) { border-color: var(--accent); }
-.q .opt.right { border-color: #1a7f4b; background: color-mix(in srgb, #1a7f4b 18%, var(--card)); }
-.q .opt.wrong { border-color: #b3261e; background: color-mix(in srgb, #b3261e 14%, var(--card)); }
-.q .fb { margin: .6rem 0 0; font-size: .95rem; }
-
 #methods-body h3 { margin-top: 2rem; }
 #methods-body li { margin-bottom: .4rem; }
 #methods-body pre { background: var(--navy); color: #d6e2f0; padding: .9rem; border-radius: 8px; overflow-x: auto; font: .82rem/1.5 var(--mono); }
-.about { text-align: left; }
 
 /* satellites scroll section */
 .sat-section { padding: 0; min-height: 260vh; }

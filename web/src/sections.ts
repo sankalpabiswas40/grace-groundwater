@@ -1,4 +1,4 @@
-// Smaller sections: gravity slider, satellite fly-over, quiz, methods, why.
+// Smaller sections: gravity slider, satellite fly-over, methods, why.
 import { bouguerMicroGal, orbitalSpeed, rangeChangeRel } from './physics';
 import { fmt, getJSON, monthLabel, type Meta } from './data';
 
@@ -126,57 +126,6 @@ export function initSatellites(): SatHandle {
   return { setProgress(v2: number) { p = Math.max(0, Math.min(1, v2)); draw(); } };
 }
 
-// ---------------- quiz
-const QUIZ: { q: string; opts: string[]; a: number; why: string }[] = [
-  {
-    q: 'Why do the two satellites move apart as they approach a region with extra mass?',
-    opts: ['The leader is pulled forward by the extra gravity first', 'The follower runs out of fuel', 'Air drag slows the follower', 'Mission control steers them apart'],
-    a: 0, why: 'The leading satellite feels the extra pull first and speeds up, so the gap grows until the follower is pulled too.',
-  },
-  {
-    q: 'Why do we need the GLDAS land model to get groundwater?',
-    opts: ['GRACE only works over oceans', 'GRACE weighs all water together, so soil moisture, snow and canopy water must be subtracted', 'GLDAS measures gravity more precisely', 'To convert centimetres into kilometres'],
-    a: 1, why: 'GRACE measures total water storage. Groundwater is what is left after subtracting modelled soil moisture, snow and canopy water, so it inherits the model’s errors.',
-  },
-  {
-    q: 'What is the 2017–2018 gap in the record?',
-    opts: ['A drought with no water to measure', 'Months removed because they looked wrong', 'The time between the end of GRACE and the start of GRACE-FO, when no satellite pair was measuring', 'A pause for the monsoon'],
-    a: 2, why: 'GRACE ended in 2017 and GRACE-FO launched on 22 May 2018. We leave those months empty instead of filling them in.',
-  },
-  {
-    q: 'Why does the map look blurry and blocky?',
-    opts: ['The website compressed the image', 'Clouds block the view', 'The satellites only pass over at night', 'Gravity measured from about 500 km up can only resolve features roughly 300 km across'],
-    a: 3, why: 'From orbit, gravity signals smaller than about 300 km blend together. The 0.5° grid is finer than the real measurement.',
-  },
-];
-
-export function initQuiz(): void {
-  const body = document.getElementById('quiz-body')!;
-  const score = document.getElementById('quiz-score')!;
-  let right = 0, done = 0;
-  QUIZ.forEach((item, qi) => {
-    const div = document.createElement('div');
-    div.className = 'q';
-    div.innerHTML = `<fieldset><legend>${qi + 1}. ${item.q}</legend></fieldset><p class="fb" aria-live="polite"></p>`;
-    const fs = div.querySelector('fieldset')!;
-    const fb = div.querySelector('.fb')!;
-    item.opts.forEach((o, oi) => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'opt'; b.textContent = o;
-      b.addEventListener('click', () => {
-        fs.querySelectorAll('button').forEach((x, xi) => { (x as HTMLButtonElement).disabled = true; if (xi === item.a) x.classList.add('right'); });
-        const ok = oi === item.a;
-        if (!ok) b.classList.add('wrong'); else right++;
-        done++;
-        fb.textContent = (ok ? 'Correct. ' : 'Not quite. ') + item.why;
-        score.textContent = `Score: ${right} / ${done}` + (done === QUIZ.length ? (right === QUIZ.length ? ' — all correct.' : ' — finished.') : '');
-      });
-      fs.appendChild(b);
-    });
-    body.appendChild(div);
-  });
-}
-
 // ---------------- methods
 export function initMethods(meta: Meta): void {
   const p = meta.provenance, h = meta.headline, r = meta.region;
@@ -220,7 +169,10 @@ export function initMethods(meta: Meta): void {
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe pipeline\\process.py
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe pipeline\\export.py
 & $HOME\\grace-groundwater-venv\\Scripts\\python.exe -m pytest pipeline\\tests</pre>
-  <p class="small muted">Data files generated ${meta.generated}. Code repository: <a href="https://github.com/sankalpabiswas40/grace-groundwater" rel="noopener">github.com/sankalpabiswas40/grace-groundwater</a>.</p>`;
+  <p class="small muted">Data files generated ${meta.generated}. Code repository: <a href="https://github.com/sankalpabiswas40/grace-groundwater" rel="noopener">github.com/sankalpabiswas40/grace-groundwater</a>.</p>
+  <h3>Credits</h3>
+  <p class="small muted">Earth imagery: NASA Blue Marble Next Generation and NASA Black Marble (NASA Earth Observatory). GRACE and GRACE-FO are joint missions of NASA and DLR / GFZ. State boundaries: DataMeet India community (CC BY 4.0). This is a student project and is not endorsed by NASA, JPL or any agency.</p>
+  <p class="small"><a href="#poster">Poster mode</a> (auto-playing loop for a screen beside the poster)</p>`;
   document.getElementById('methods-body')!.innerHTML = html;
 }
 

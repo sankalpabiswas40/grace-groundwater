@@ -70,25 +70,12 @@ test('map plays and pauses, missing month shows No data, cell popup opens', asyn
   expect(errors).toEqual([]);
 });
 
-test('quiz gives feedback and a score', async ({ page }) => {
-  const errors = watchErrors(page);
-  await ready(page, '/?tier=static#quiz');
-  const qs = page.locator('#quiz-body .q');
-  await expect(qs).toHaveCount(4);
-  await qs.nth(0).locator('.opt').nth(0).click();
-  await expect(qs.nth(0).locator('.fb')).toContainText('Correct');
-  await qs.nth(1).locator('.opt').nth(0).click();
-  await expect(qs.nth(1).locator('.fb')).toContainText('Not quite');
-  await expect(page.locator('#quiz-score')).toContainText('1 / 2');
-  expect(errors).toEqual([]);
-});
-
 test('sections render: gravity slider, curve, methods equations', async ({ page }, info) => {
   const errors = watchErrors(page);
   await ready(page, '/?tier=static');
   await page.locator('#grav-slider').evaluate((el) => { (el as HTMLInputElement).value = '100'; el.dispatchEvent(new Event('input')); });
   await expect(page.locator('#grav-val')).toHaveText('+41.94');
-  for (const id of ['gravity', 'satellites', 'method', 'curve', 'why', 'methods', 'about']) {
+  for (const id of ['gravity', 'satellites', 'method', 'curve', 'why', 'methods']) {
     await page.locator('#' + id).scrollIntoViewIfNeeded();
     await page.waitForTimeout(700);
     await page.screenshot({ path: `${SHOTS}/${info.project.name}-${id}.png` });
