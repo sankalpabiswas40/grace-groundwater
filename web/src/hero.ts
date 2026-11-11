@@ -59,8 +59,8 @@ function makeSatellite(): THREE.Group {
   const body = new THREE.Mesh(
     new THREE.ExtrudeGeometry(shape, { depth: 3.1, bevelEnabled: false }),
     [
-      new THREE.MeshStandardMaterial({ color: 0xc9a227, metalness: 0.85, roughness: 0.35 }), // gold foil ends
-      new THREE.MeshStandardMaterial({ color: 0x10214a, metalness: 0.6, roughness: 0.3 }), // solar cells
+      new THREE.MeshStandardMaterial({ color: 0xd9b23a, metalness: 0.6, roughness: 0.4, emissive: 0x6b5210 }), // gold foil ends
+      new THREE.MeshStandardMaterial({ color: 0x2c4fa3, metalness: 0.4, roughness: 0.35, emissive: 0x14285c }), // solar cells
     ],
   );
   body.geometry.translate(0, -0.3, -1.55);
@@ -139,7 +139,7 @@ export function initHero(
   dl.position.copy(sun).multiplyScalar(10);
   scene.add(dl);
   const sats = [makeSatellite(), makeSatellite()];
-  const SAT_SCALE = 0.014;
+  const SAT_SCALE = 0.016;
   sats.forEach((s) => { s.scale.setScalar(SAT_SCALE); scene.add(s); });
   const linkGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
   const link = new THREE.Line(linkGeo, new THREE.LineBasicMaterial({ color: 0x7fd0ee, transparent: true, opacity: 0.85 }));

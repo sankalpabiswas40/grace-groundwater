@@ -228,8 +228,8 @@ export function initMethods(meta: Meta): void {
 export async function initWhy(): Promise<void> {
   const text = document.getElementById('why-text')!;
   const fig = document.getElementById('why-figure')!;
-  let why: { paragraphs: string[]; bars?: { label: string; value: number }[]; bar_title?: string; bar_unit?: string; source_html: string } | null = null;
-  try { why = await getJSON('data/why.json'); } catch { why = null; }
+  let why: { paragraphs: string[]; graphic?: string; bars?: { label: string; value: number }[]; bar_title?: string; bar_unit?: string; source_html: string } | null = null;
+  try { why = await getJSON('content/why.json'); } catch { why = null; }
   if (!why) {
     text.innerHTML = '<p>This section is waiting for figures from the Central Ground Water Board assessment. No numbers are shown until they have been checked against the source.</p>';
     fig.hidden = true;
@@ -245,5 +245,20 @@ export async function initWhy(): Promise<void> {
          <span style="position:absolute;left:${(100 / max) * 100}%;top:-3px;bottom:-3px;border-left:2px dashed var(--ink)"></span></span>
        <span class="mono small" style="flex:0 0 3.6rem;text-align:right">${fmt(b.value, 0)}${why!.bar_unit ?? ''}</span></div>`).join('') +
       '<p class="small muted">Dashed line: 100% = extraction equals the annual extractable recharge.</p>';
+  } else if (why.graphic === 'balance') {
+    fig.innerHTML = `<svg viewBox="0 0 400 300" role="img" aria-label="Schematic: monsoon recharge going into the aquifer is smaller than pumping coming out, so the water table falls">
+      <rect width="400" height="110" fill="var(--sky2)"/><rect y="110" width="400" height="24" fill="#7a5a3a"/>
+      <rect y="134" width="400" height="166" fill="#d9c08e"/><rect y="215" width="400" height="85" fill="#2b7fc2" opacity=".75"/>
+      <line x1="0" x2="400" y1="190" y2="190" stroke="#0b4f8a" stroke-dasharray="5 4" opacity=".5"/>
+      <line x1="0" x2="400" y1="215" y2="215" stroke="#0b4f8a" stroke-width="2"/>
+      <text x="392" y="186" text-anchor="end" class="svg-lab" fill="#0b4f8a">earlier water table</text>
+      <text x="392" y="230" text-anchor="end" class="svg-lab" fill="#fff">water table now</text>
+      <g stroke="#2b7fc2" stroke-width="3" fill="none"><path d="M70 30v70m-8-12 8 12 8-12"/><path d="M110 30v70m-8-12 8 12 8-12"/></g>
+      <text x="90" y="22" text-anchor="middle" class="svg-lab" fill="var(--ink)">monsoon recharge</text>
+      <rect x="246" y="60" width="10" height="200" fill="#444"/><rect x="236" y="48" width="60" height="14" fill="#444"/>
+      <g stroke="#b0541a" stroke-width="5" fill="none"><path d="M300 55h50m-12-9 12 9-12 9"/><path d="M300 78h50m-12-9 12 9-12 9"/><path d="M300 101h50m-12-9 12 9-12 9"/></g>
+      <text x="300" y="38" text-anchor="middle" class="svg-lab" fill="var(--ink)">pumping for irrigation</text>
+      <path d="M200 195v16m-5-7 5 7 5-7" stroke="#0b4f8a" stroke-width="2" fill="none"/>
+    </svg><figcaption class="badge">Schematic, not to scale. Arrow sizes are not measurements.</figcaption>`;
   } else fig.hidden = true;
 }

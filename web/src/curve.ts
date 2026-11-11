@@ -54,14 +54,14 @@ export async function initCurve(meta: Meta): Promise<void> {
       const yb = d3.scaleLinear(d3.extent(trend.filter((v): v is number => v !== null)) as [number, number], [H - m.b, mid + 22]).nice();
       gapShade(m.t, mid - 22); gapShade(mid + 22, H - m.b);
       xAxis(mid - 22); xAxis(H - m.b);
-      yAxis(ya, '(a) yearly monsoon cycle, cm'); yAxis(yb, '(b) long-term trend, cm');
+      yAxis(ya, small ? '(a) data minus trend; grey = fitted yearly cycle, cm' : '(a) monsoon cycle: data minus trend (blue) and fitted yearly cycle (grey), cm'); yAxis(yb, small ? '(b) data minus cycle; dashed = trend, cm' : '(b) long-term change: data minus yearly cycle (blue) and fitted trend (dashed), cm');
       const pa = svg.append('path').attr('d', line(seas, ya)).attr('fill', 'none').attr('stroke', 'var(--jpl)').attr('stroke-width', 1.3);
       svg.append('path').attr('d', d3.line<number>().x((d) => x(d)).y((d) => ya(evalFit(fit, d, { seasonal: true })))(tt)!)
         .attr('fill', 'none').attr('stroke', 'var(--ink)').attr('stroke-width', 1).attr('opacity', 0.6);
       const pb = svg.append('path').attr('d', line(trend, yb)).attr('fill', 'none').attr('stroke', 'var(--jpl)').attr('stroke-width', 1.3);
       svg.append('path').attr('d', d3.line<number>().x((d) => x(d)).y((d) => yb(evalFit(fit, d, { trend: true })))(tt)!)
         .attr('fill', 'none').attr('stroke', 'var(--ink)').attr('stroke-width', 1.4).attr('stroke-dasharray', '5 4');
-      svg.append('text').attr('x', W - m.r).attr('y', mid + 34).attr('text-anchor', 'end')
+      svg.append('text').attr('x', W - m.r).attr('y', H - m.b - 8).attr('text-anchor', 'end')
         .text(`slope ${sign(fit.slope_cm_per_yr)} cm/yr · yearly amplitude ${fmt(fit.annual_amp_cm, 1)} cm`);
       if (animate && !reduced) {
         [pa, pb].forEach((p, k) => p.attr('opacity', 0).attr('transform', `translate(0,${k === 0 ? 40 : -40})`)

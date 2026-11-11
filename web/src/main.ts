@@ -94,6 +94,7 @@ function showStaticHero() {
   (document.getElementById('hero-canvas') as HTMLCanvasElement).hidden = true;
   const el = document.getElementById('hero-static')!;
   el.hidden = false;
+  document.querySelector('.hero-badge')!.textContent = 'Static image (pre-rendered). Satellites and orbit: schematic, not to scale.';
   const img = new Image();
   img.onload = () => { el.style.backgroundImage = `url(${img.src})`; };
   img.src = url('static/hero.jpg');
