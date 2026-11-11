@@ -1,0 +1,271 @@
+{
+ "generated": "2026-11-11",
+ "provenance": {
+  "state_boundaries": {
+   "file": "States/Admin2.shp",
+   "source": "https://github.com/datameet/maps",
+   "provider": "DataMeet India community",
+   "licence": "CC BY 4.0",
+   "note": "Open file chosen by the author instead of the Survey of India portal download. Not an official Survey of India product.",
+   "analysis_region": [
+    "Punjab",
+    "Haryana",
+    "Delhi",
+    "Rajasthan"
+   ],
+   "files_sha256": {
+    "Admin2.shp": "b61ebc11a7487ce1c340d55fc9d0c1a2b63af1f73191fef691c11693c726130d",
+    "Admin2.shx": "dc428a44ed20384b02c3c5971f2b200b15d429923b6cc770cae940d0af21016a",
+    "Admin2.dbf": "4ec2f9b83263c85781bc9abf0d281d441b5e02377be124bda6b5d87bd9dc4ccd",
+    "Admin2.prj": "a02a27b1d1982c8516d83398e85a3c8b1aef1713c13ef4d84d7bde17430c07c4",
+    "Admin2.cpg": "3ad3031f5503a4404af825262ee8232cc04d4ea6683d42c5dd0a2f2a27ac9824"
+   },
+   "download_date": "2026-11-11"
+  },
+  "csr_mascon": {
+   "product": "CSR GRACE/GRACE-FO RL06.3 Mascon Solutions (RL06 Mascons v02), all corrections",
+   "doi": "10.15781/cgq9-nh24",
+   "source": "https://download.csr.utexas.edu/outgoing/grace/RL0603_mascons/",
+   "files_sha256": {
+    "CSR_GRACE_GRACE-FO_RL0603_Mascons_all-corrections.nc": "d4bd8b7364fb34d871198001563c70d344792cb7b0a577c04f8b91c713741292",
+    "CSR_GRACE_GRACE-FO_RL06_Mascons_v02_LandMask.nc": "65ddd8f3c7f7633c3a34f904e196307f71e4994e11ceb64f9337275908ff2f3b"
+   },
+   "download_date": "2026-11-11"
+  },
+  "jpl_mascon": {
+   "short_name": "TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06.3_V4",
+   "version": "RL06.3Mv04",
+   "doi": "10.5067/TEMSC-3JC634",
+   "host": "NASA PO.DAAC",
+   "file": "GRCTellus.JPL.200204_202609.GLO.RL06.3M.MSCNv04CRI.nc",
+   "sha256": "3522dd579cc10326339efdecece550ba01f41b9bee599d0ed915fc35f9eafb64",
+   "download_date": "2026-11-11"
+  },
+  "gldas_noah": {
+   "short_name": "GLDAS_NOAH025_M",
+   "version": "2.1",
+   "doi": "10.5067/SXAVCZFAQLNO",
+   "host": "NASA GES DISC (via opendap.earthdata.nasa.gov)",
+   "variables": [
+    "SoilMoi0_10cm_inst",
+    "SoilMoi10_40cm_inst",
+    "SoilMoi40_100cm_inst",
+    "SoilMoi100_200cm_inst",
+    "SWE_inst",
+    "CanopInt_inst"
+   ],
+   "subset": "display box plus 1 degree margin, lat index 316-395, lon index 980-1091; values unchanged",
+   "first_file": "GLDAS_NOAH025_M.A200204.021.nc4",
+   "last_file": "GLDAS_NOAH025_M.A202607.021.nc4",
+   "n_months": 292,
+   "download_date": "2026-11-11"
+  }
+ },
+ "baseline": "2004.0-2009.999 (JPL and CSR product baseline; GLDAS anomalies use Jan 2004-Dec 2009)",
+ "region": {
+  "states": [
+   "Punjab",
+   "Haryana",
+   "Delhi",
+   "Rajasthan"
+  ],
+  "area_km2_grid_weighted": 438913.22188592714,
+  "area_km2_polygons": 438925.3389498134,
+  "n_cells_touched": 200,
+  "n_jpl_mascons_touched": 12
+ },
+ "display_box": [
+  20.0,
+  38.0,
+  66.0,
+  92.0
+ ],
+ "jpl": {
+  "file": "GRCTellus.JPL.200204_202609.GLO.RL06.3M.MSCNv04CRI.nc",
+  "n_solutions": 261,
+  "missing_months": [
+   "2002-06",
+   "2002-07",
+   "2003-06",
+   "2011-01",
+   "2011-06",
+   "2012-05",
+   "2012-10",
+   "2013-03",
+   "2013-08",
+   "2013-09",
+   "2014-02",
+   "2014-07",
+   "2014-12",
+   "2015-06",
+   "2015-10",
+   "2015-11",
+   "2016-04",
+   "2016-09",
+   "2016-10",
+   "2017-02",
+   "2017-07",
+   "2017-08",
+   "2017-09",
+   "2017-10",
+   "2017-11",
+   "2017-12",
+   "2018-01",
+   "2018-02",
+   "2018-03",
+   "2018-04",
+   "2018-05",
+   "2018-08",
+   "2018-09"
+  ],
+  "mission_gap_months": [
+   "2017-07",
+   "2017-08",
+   "2017-09",
+   "2017-10",
+   "2017-11",
+   "2017-12",
+   "2018-01",
+   "2018-02",
+   "2018-03",
+   "2018-04",
+   "2018-05"
+  ]
+ },
+ "csr": {
+  "n_solutions": 260,
+  "missing_months": [
+   "2002-06",
+   "2002-07",
+   "2003-06",
+   "2011-01",
+   "2011-06",
+   "2012-05",
+   "2012-10",
+   "2013-03",
+   "2013-08",
+   "2013-09",
+   "2014-02",
+   "2014-07",
+   "2014-12",
+   "2015-06",
+   "2015-10",
+   "2015-11",
+   "2016-04",
+   "2016-09",
+   "2016-10",
+   "2017-02",
+   "2017-07",
+   "2017-08",
+   "2017-09",
+   "2017-10",
+   "2017-11",
+   "2017-12",
+   "2018-01",
+   "2018-02",
+   "2018-03",
+   "2018-04",
+   "2018-05",
+   "2018-08",
+   "2018-09",
+   "2026-09"
+  ]
+ },
+ "gldas": {
+  "last_month": "2026-07",
+  "baseline": [
+   "2004-01",
+   "2009-12"
+  ]
+ },
+ "headline": {
+  "label": "NW India groundwater storage trend (ours; JPL RL06.3Mv04 mascons, no gain factors, minus GLDAS-2.1 Noah)",
+  "period": [
+   "2002-04",
+   "2026-07"
+  ],
+  "n_months": 259,
+  "gws_cm_per_yr": -2.342,
+  "gws_cm_per_yr_se": 0.053,
+  "gws_km3_per_yr": -10.28,
+  "gws_km3_per_yr_se": 0.23,
+  "se_note": "Formal least-squares standard error; monthly residuals are autocorrelated, so it is a lower bound.",
+  "formula_volume": "km3/yr = sum_cells( b_cell[m/yr] * A_cell[m2] * f_cell ) / 1e9, A = R^2*dlon*(sin(lat2)-sin(lat1)), R = 6371 km, f = fraction of cell inside the region",
+  "litres_per_second": 325676.0,
+  "formula_counter": "litres lost = |rate km3/yr| * 1e12 L/km3 * seconds / (365.25*86400 s/yr)",
+  "sensitivity": {
+   "jpl_with_gain_factors_km3_per_yr": -10.01,
+   "csr_km3_per_yr": -10.9,
+   "jpl_with_gain_factors_cm_per_yr": -2.28,
+   "csr_cm_per_yr": -2.484
+  }
+ },
+ "tws_trend": {
+  "tws_jpl": {
+   "cm_per_yr": -2.152,
+   "se": 0.061,
+   "km3_per_yr": -9.44,
+   "period": [
+    "2002-04",
+    "2026-09"
+   ]
+  },
+  "tws_jpl_sc": {
+   "cm_per_yr": -2.09,
+   "se": 0.057,
+   "km3_per_yr": -9.17,
+   "period": [
+    "2002-04",
+    "2026-09"
+   ]
+  },
+  "tws_csr": {
+   "cm_per_yr": -2.303,
+   "se": 0.061,
+   "km3_per_yr": -10.11,
+   "period": [
+    "2002-04",
+    "2026-08"
+   ]
+  }
+ },
+ "rodell_crosscheck": {
+  "published": {
+   "citation": "Rodell, Velicogna & Famiglietti (2009), Nature 460, 999-1002, doi:10.1038/nature08238",
+   "region": "Rajasthan, Punjab and Haryana (including Delhi), 438,296 km2",
+   "period": "August 2002 to October 2008",
+   "cm_per_yr": -4.0,
+   "cm_per_yr_unc": 1.0,
+   "km3_per_yr": -17.7,
+   "km3_per_yr_unc": 4.5
+  },
+  "ours_same_period": {
+   "jpl": {
+    "cm_per_yr": -2.593,
+    "se": 0.171,
+    "km3_per_yr": -11.38,
+    "n_months": 74
+   },
+   "jpl_sc": {
+    "cm_per_yr": -2.627,
+    "se": 0.156,
+    "km3_per_yr": -11.53,
+    "n_months": 74
+   },
+   "csr": {
+    "cm_per_yr": -2.275,
+    "se": 0.202,
+    "km3_per_yr": -9.98,
+    "n_months": 74
+   }
+  },
+  "note": "Different GRACE processing (2009: CSR spherical harmonics; ours: RL06.3 mascons) and different land-surface model treatment. Nothing was tuned to match."
+ },
+ "limits": [
+  "GRACE native resolution is about 300 km (JPL mascons are 3 degrees); the 0.5 degree grid is a sampling, not sharp pixels.",
+  "No data between GRACE (ended 2017) and GRACE-FO (from mid-2018); other months are also missing. Nothing is interpolated.",
+  "Groundwater = TWS minus GLDAS-2.1 Noah soil moisture, snow and canopy water, so it carries that model's errors.",
+  "Surface water and reservoirs are not removed.",
+  "Signal leaks between neighbouring mascons; the region touches only about a dozen JPL mascons."
+ ]
+}

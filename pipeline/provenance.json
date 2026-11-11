@@ -29,5 +29,33 @@
       "CSR_GRACE_GRACE-FO_RL06_Mascons_v02_LandMask.nc": "65ddd8f3c7f7633c3a34f904e196307f71e4994e11ceb64f9337275908ff2f3b"
     },
     "download_date": "2026-11-11"
+  },
+  "jpl_mascon": {
+    "short_name": "TELLUS_GRAC-GRFO_MASCON_CRI_GRID_RL06.3_V4",
+    "version": "RL06.3Mv04",
+    "doi": "10.5067/TEMSC-3JC634",
+    "host": "NASA PO.DAAC",
+    "file": "GRCTellus.JPL.200204_202609.GLO.RL06.3M.MSCNv04CRI.nc",
+    "sha256": "3522dd579cc10326339efdecece550ba01f41b9bee599d0ed915fc35f9eafb64",
+    "download_date": "2026-11-11"
+  },
+  "gldas_noah": {
+    "short_name": "GLDAS_NOAH025_M",
+    "version": "2.1",
+    "doi": "10.5067/SXAVCZFAQLNO",
+    "host": "NASA GES DISC (via opendap.earthdata.nasa.gov)",
+    "variables": [
+      "SoilMoi0_10cm_inst",
+      "SoilMoi10_40cm_inst",
+      "SoilMoi40_100cm_inst",
+      "SoilMoi100_200cm_inst",
+      "SWE_inst",
+      "CanopInt_inst"
+    ],
+    "subset": "display box plus 1 degree margin, lat index 316-395, lon index 980-1091; values unchanged",
+    "first_file": "GLDAS_NOAH025_M.A200204.021.nc4",
+    "last_file": "GLDAS_NOAH025_M.A202607.021.nc4",
+    "n_months": 292,
+    "download_date": "2026-11-11"
   }
 }

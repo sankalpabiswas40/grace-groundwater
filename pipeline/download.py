@@ -148,7 +148,7 @@ def gldas():
         if dest.exists() and dest.stat().st_size > 1000:
             continue
         url = (f"https://opendap.earthdata.nasa.gov/collections/{C.GLDAS_CONCEPT}"
-               f"/granules/{n}.dap.nc4?dap4.ce={ce}")
+               f"/granules/{C.GLDAS_SHORT_NAME}.{C.GLDAS_VERSION}%3A{n}.dap.nc4?dap4.ce={ce}")
         for attempt in range(4):
             r = session.get(url, timeout=180)
             if r.status_code == 200 and r.content[:4] in (b"\x89HDF", b"CDF\x01", b"CDF\x02"):
