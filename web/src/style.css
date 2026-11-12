@@ -298,3 +298,13 @@ details.deeper > summary { font-weight: 600; }
 .globe-ui.fullscreen .inside-side { overflow: auto; max-height: 100%; }
 @media (max-width: 899px) { .globe-ui.fullscreen .inside-grid { grid-template-rows: 1.3fr 1fr; } .chip { min-height: 44px; } }
 @media (min-width: 900px) { .inside-stage { height: auto; min-height: min(64vh, 560px); } }
+
+/* underground upgrade */
+.ug-ui .toggles { padding: 0 0 .5rem; }
+.ug-strip { margin-top: .5rem; }
+.ug-strip svg { width: 100%; height: auto; display: block; }
+.ug-strip text { font: 8px var(--mono); fill: var(--muted); }
+.ug-caption { display: block; margin: .5rem 0 0; }
+.ug-ui.fullscreen { position: fixed; inset: 0; z-index: 130; border-radius: 0; display: flex; flex-direction: column; background: var(--card); padding: .75rem; }
+.ug-ui.fullscreen .ug-stage { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; }
+.ug-ui.fullscreen .ug-legend, .ug-ui.fullscreen .ug-caption { display: none; }

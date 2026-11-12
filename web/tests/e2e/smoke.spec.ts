@@ -198,6 +198,20 @@ test('underground: water-table change equals GWS / Sy from the real series', asy
   const gap = rs.months.indexOf('2017-12');
   await page.locator('#ug-slider').evaluate((el, k) => { (el as HTMLInputElement).value = String(k); el.dispatchEvent(new Event('input')); }, gap);
   await expect(page.locator('#ug-readout')).toContainText('No data');
+  // 3D scene: level hidden in a gap month; drained zone and dry shallow well follow the numbers
+  expect((await page.evaluate(() => (window as unknown as { __ug3d: { depthM: number | null } }).__ug3d)).depthM).toBeNull();
+  await page.locator('#ug-sy').evaluate((el) => { (el as HTMLInputElement).value = '0.05'; el.dispatchEvent(new Event('input')); });
+  await page.locator('#ug-slider').evaluate((el, k) => { (el as HTMLInputElement).value = String(k); el.dispatchEvent(new Event('input')); }, i);
+  const s3 = await page.evaluate(() => (window as unknown as { __ug3d: { depthM: number; dryWell: boolean; rising: boolean } }).__ug3d);
+  expect(s3.depthM).toBeCloseTo(8 - rs.series.gws_jpl[i] / 100 / 0.05, 6);
+  expect(s3.dryWell).toBe(s3.depthM > 11);
+  expect(s3.rising).toBe(rs.series.gws_jpl[i] > rs.series.gws_jpl.slice(0, i).reverse().find((v: number | null) => v !== null));
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-underground-low.png` });
+  await page.locator('#ug-explore').click();
+  await expect(page.locator('#ug-ui')).toHaveClass(/fullscreen/);
+  await page.locator('#ug-close').click();
+  await expect(page.locator('#ug-ui')).not.toHaveClass(/fullscreen/);
   expect(await overflow(page)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });

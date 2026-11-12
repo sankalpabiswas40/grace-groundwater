@@ -439,16 +439,21 @@
         <p>Limits: one S<sub>y</sub> for the whole region is a strong simplification; confined aquifers respond differently; and the groundwater number itself carries GRACE and land-model errors.</p>
       </details>
     </div>
-    <figure class="panel">
+    <figure class="panel ug-ui" id="ug-ui">
+      <div class="toggles">
+        <button class="btn" id="ug-explore">Explore in 3D (full screen)</button>
+        <button class="btn primary" id="ug-close" hidden>&times; Close 3D view</button>
+      </div>
       <div class="ug-stage" id="ug-stage">
-        <canvas id="ug-canvas" role="img" aria-label="Cutaway block of alluvium with soil, sand and clay layers, tube wells and a water table that moves with the selected month"></canvas>
+        <canvas id="ug-canvas" role="img" aria-label="Cutaway block of alluvium with soil, sand and clay layers, tube wells, a depth scale and a water table that moves with the selected month"></canvas>
         <div id="ug-fallback" class="nodata" hidden><b>3D view unavailable</b><span>The numbers on this page still work.</span></div>
       </div>
+      <div id="ug-strip" class="ug-strip"></div>
       <ul class="ug-legend small">
-        <li><span style="background:#6b4f33"></span>soil</li><li><span style="background:#d9c08e"></span>sand</li><li><span style="background:#8a8f99"></span>clay</li>
-        <li><span style="background:#2b7fc2"></span>saturated zone</li><li><span style="background:#fff;outline:1px solid #888"></span>2004&ndash;2009 level</li><li><span style="background:#3a3f47"></span>tube wells</li>
+        <li><span style="background:#2b7fc2"></span>saturated zone</li><li><span style="background:#e0902a;opacity:.6"></span>sand that has drained since 2004&ndash;2009</li>
+        <li><span style="background:#3b9be0;border-radius:50%"></span>recharge (months when storage rises in our data)</li><li><span style="background:#6fc7f0;border-radius:50%"></span>water being pumped</li>
       </ul>
-      <figcaption class="badge">Schematic geometry, not to scale. Block is 30 m deep; layers, wells and the starting depth (8 m) are illustrative. Only the change in water level comes from data. Drag sideways to turn.</figcaption>
+      <figcaption class="small muted ug-caption">Illustrative cross-section. The 30 m depth scale, the layers, the wells and the starting depth of 8 m are not measured; only the change in water level comes from our data. Drag sideways to turn.</figcaption>
     </figure>
   </div>
 </section>

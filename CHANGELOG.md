@@ -35,3 +35,5 @@
 - The satellite section now has a 3D fly-over: NASA's GRACE-FO pair flies over a glowing mass beneath north-west India, driven by scrolling, with the separation graph underneath. Altitude and separation are to scale; the rest is labelled schematic. The flat diagram remains as the fallback.
 - Added the geoid chapter (#geoid): a rotatable globe whose shape and colour show geoid heights computed in the pipeline (pipeline/geoid.py)
   from the EGM2008 gravity model (ICGEM, GFZ), degrees 2 to 60, with an exaggeration slider from 1x to 10,000x and the Indian Ocean low marked.
+- New section 'Inside GRACE-FO' (#inside): tap the satellite and it comes apart. The interior is reconstructed from the Airbus DS layout diagram and the dimensions in the NASA/JPL press kit; each unit has a sourced description.
+- Underground section upgraded: textured layers and fields, a depth scale, the drained zone and a labelled change arrow, pumping wells, a shallow well that runs dry, recharge in months when our data rise, a camera dive, a timeline strip and full-screen explore.

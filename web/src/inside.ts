@@ -279,7 +279,12 @@ export async function initInside(tier: 'full' | 'lite' | 'static'): Promise<void
     (window as unknown as { __inside: unknown }).__inside = { open, parts: PARTS.length, selected: b?.part.id ?? null };
     dirty = true;
   }
-  select = (id: string) => { if (!open) setOpen(true); pick(built.find((b) => b.part.id === id) ?? null); };
+  select = (id: string) => {
+    if (!open) setOpen(true);
+    pick(built.find((b) => b.part.id === id) ?? null);
+    // on narrow screens the list sits below the model: bring the model and card back into view
+    if (!exploring && stage.getBoundingClientRect().top < -40) stage.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+  };
 
   // ---- camera: slow turntable in the page, free orbit in full screen
   let yaw = 0.75, dist = 7, exploring = false, idle = 0, dragX: number | null = null;
