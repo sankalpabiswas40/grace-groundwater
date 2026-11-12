@@ -37,3 +37,6 @@
   from the EGM2008 gravity model (ICGEM, GFZ), degrees 2 to 60, with an exaggeration slider from 1x to 10,000x and the Indian Ocean low marked.
 - New section 'Inside GRACE-FO' (#inside): tap the satellite and it comes apart. The interior is reconstructed from the Airbus DS layout diagram and the dimensions in the NASA/JPL press kit; each unit has a sourced description.
 - Underground section upgraded: textured layers and fields, a depth scale, the drained zone and a labelled change arrow, pumping wells, a shallow well that runs dry, recharge in months when our data rise, a camera dive, a timeline strip and full-screen explore.
+- Inside GRACE-FO rebuilt with a staged opening: the camera pushes in, the shell unlatches and splits into panels that swing open, a light sweeps the platform, units lift out in order, and the camera pulls back. Scrolling plays it; the button and taps still work.
+  Once open: microwave rings from the horn, the laser beam through the bench and triple mirror, a floating proof mass, star-camera view cones and gas puffs. Added shadows (Full quality), panel detail, cable looms, stars and the Earth below, focus-on-part camera moves and small diagrams in the part cards.
+- Fixed a layout bug where the 3D stage of that section kept growing taller on wide screens.

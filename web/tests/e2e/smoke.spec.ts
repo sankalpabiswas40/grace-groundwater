@@ -261,32 +261,50 @@ test('geoid globe: numbers from the data file, exaggeration label matches applie
   expect(errors).toEqual([]);
 });
 
-test('inside GRACE-FO: opens, parts are listed, a part card shows its source', async ({ page }, info) => {
+test('inside GRACE-FO: scrolling opens it, parts are listed, a part card shows its source', async ({ page }, info) => {
+  test.setTimeout(150000); // the scene is heavy for the software-rendered test browser
   const errors = watchErrors(page);
   await ready(page, '/?tier=lite');
-  await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
-  await expect(page.locator('#inside-list .chip').first()).toBeVisible({ timeout: 20000 });
+  await page.locator('#inside').scrollIntoViewIfNeeded();
+  await expect(page.locator('#inside-list .chip').first()).toBeAttached({ timeout: 20000 });
   const n = await page.locator('#inside-list .chip').count();
   expect(n).toBeGreaterThan(20);
   await page.waitForFunction(() => (window as unknown as { __inside?: { parts: number } }).__inside !== undefined, null, { timeout: 30000 });
-  await page.waitForTimeout(1200);
-  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-closed.png` });
-  await page.locator('#inside-toggle').click();
-  await expect(page.locator('#inside-toggle')).toHaveText('Put it back together');
-  await page.waitForTimeout(2600);
+  const state = () => page.evaluate(() => (window as unknown as { __inside: { open: boolean; parts: number; selected: string | null; progress: number } }).__inside);
+  // scrolling the model to the middle of the screen plays the opening
+  await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await expect(page.locator('#inside-toggle')).toHaveText('Put it back together', { timeout: 30000 });
+  await page.waitForFunction(() => (window as unknown as { __inside: { progress: number } }).__inside.progress > 0.95, null, { timeout: 30000 });
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-open.png` });
   await page.locator('#inside-list .chip', { hasText: 'Accelerometer' }).first().click();
   await expect(page.locator('#inside-card')).toContainText('centre of gravity');
   await expect(page.locator('#inside-card')).toContainText('ONERA');
   await expect(page.locator('#inside-card a')).toHaveAttribute('href', /jpl\.nasa\.gov/);
-  const st = await page.evaluate(() => (window as unknown as { __inside: { open: boolean; parts: number; selected: string } }).__inside);
+  await expect(page.locator('#inside-card svg.part-anim')).toBeVisible();
+  let st = await state();
   expect(st.open).toBe(true);
   expect(st.parts).toBe(n);
   expect(st.selected).toBe('acc');
-  await page.waitForTimeout(700);
   await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
-  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-open.png` });
+  await page.waitForTimeout(2200);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-focus.png` });
+  // the button closes it again
   await page.locator('#inside-toggle').click();
   await expect(page.locator('#inside-toggle')).toHaveText('Take it apart');
+  // closing is animated; wait for it to finish (slow in the software-rendered test browser)
+  await page.waitForFunction(() => (window as unknown as { __inside: { progress: number } }).__inside.progress < 0.05, null, { timeout: 30000 });
+  st = await state();
+  expect(st.open).toBe(false);
+  expect(st.progress).toBeLessThan(0.05);
+  expect(st.selected).toBeNull();
+  // the stage must keep a stable height (it once grew without limit)
+  const h1 = await page.locator('#inside-stage').evaluate((el) => el.clientHeight);
+  await page.waitForTimeout(700);
+  expect(await page.locator('#inside-stage').evaluate((el) => el.clientHeight)).toBe(h1);
+  expect(h1).toBeLessThan(1400);
+  await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-closed.png` });
   expect(await overflow(page)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
