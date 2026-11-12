@@ -217,3 +217,32 @@ test('opens at the top, also after a refresh from a section link', async ({ page
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   expect(await page.evaluate(() => location.hash)).toBe('');
 });
+
+test('geoid globe: numbers from the data file, exaggeration label matches applied radius', async ({ page }, info) => {
+  const errors = watchErrors(page);
+  await ready(page, '/?tier=lite');
+  await page.locator('#geoid-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  const meta = await page.evaluate(async () => (await (await fetch('data/geoid.json')).json()));
+  await expect(page.locator('#geoid-facts')).toContainText('EGM2008', { timeout: 20000 });
+  await expect(page.locator('#geoid-facts')).toContainText(String(Math.abs(meta.indian_ocean_low.height_m).toFixed(1)));
+  const read = () => page.evaluate(() => (window as unknown as { __geoid: { exag: number; lowM: number; lowRadius: number; degree: number } }).__geoid);
+  let g = await read();
+  expect(g.degree).toBe(meta.max_degree_used);
+  expect(g.lowM).toBe(meta.indian_ocean_low.height_m);
+  expect(g.lowRadius).toBeCloseTo(1 + (g.exag * g.lowM) / 6371000, 12);
+  await expect(page.locator('#geoid-exag-out')).toContainText(g.exag.toLocaleString('en-IN'));
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-geoid.png` });
+  await page.locator('#geoid-exag').evaluate((el) => { (el as HTMLInputElement).value = '4'; el.dispatchEvent(new Event('input')); });
+  g = await read();
+  expect(g.exag).toBe(10000);
+  await expect(page.locator('#geoid-exag-out')).toContainText('10,000');
+  await page.locator('#geoid-exag').evaluate((el) => { (el as HTMLInputElement).value = '0'; el.dispatchEvent(new Event('input')); });
+  expect((await read()).exag).toBe(1);
+  await page.locator('#geoid-explore').click();
+  await expect(page.locator('#geoid-ui')).toHaveClass(/fullscreen/);
+  await page.locator('#geoid-close').click();
+  await expect(page.locator('#geoid-ui')).not.toHaveClass(/fullscreen/);
+  expect(await overflow(page)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+});

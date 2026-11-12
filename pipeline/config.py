@@ -44,3 +44,7 @@ NW_STATES = ["Punjab", "Haryana", "Delhi", "Rajasthan"]
 
 # Whole-of-India box for the 3D columns view: lat_min, lat_max, lon_min, lon_max
 INDIA_BOX = (6.0, 38.0, 66.0, 98.0)
+
+# Geoid: EGM2008 from the ICGEM service (GFZ), used only up to this spherical-harmonic degree
+EGM2008_URL = "https://icgem.gfz.de/getmodel/gfc/c50128797a9cb62e936337c890e4425f03f0461d7329b09a8cc8561504465340/EGM2008.gfc"
+GEOID_NMAX = 60

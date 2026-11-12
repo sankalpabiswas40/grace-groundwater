@@ -33,3 +33,5 @@
   Rebuild with: npm run build, npm run preview, then node scripts/make-poster.mjs (inside web).
 - The site now always opens at the top: the browser no longer restores an old scroll position, and a refresh drops any #section left in the address. Fresh links that name a section still open there.
 - The satellite section now has a 3D fly-over: NASA's GRACE-FO pair flies over a glowing mass beneath north-west India, driven by scrolling, with the separation graph underneath. Altitude and separation are to scale; the rest is labelled schematic. The flat diagram remains as the fallback.
+- Added the geoid chapter (#geoid): a rotatable globe whose shape and colour show geoid heights computed in the pipeline (pipeline/geoid.py)
+  from the EGM2008 gravity model (ICGEM, GFZ), degrees 2 to 60, with an exaggeration slider from 1x to 10,000x and the Indian Ocean low marked.

@@ -24,7 +24,7 @@
 <header class="topbar" id="topbar">
   <a class="brand" href="#home" aria-label="Top of page">GRACE <span>&middot; NW India</span></a>
   <nav aria-label="Sections">
-    <a href="#gravity">Gravity</a><a href="#satellites">Satellites</a><a href="#method">Method</a>
+    <a href="#gravity">Gravity</a><a href="#geoid">Geoid</a><a href="#satellites">Satellites</a><a href="#method">Method</a>
     <a href="#globe">3D</a><a href="#map">Map</a><a href="#curve">Trend</a><a href="#underground">Underground</a><a href="#why">Why</a><a href="#methods">Methods</a>
   </nav>
   <div class="tools">
@@ -106,6 +106,42 @@
       </svg>
       <figcaption class="badge">Schematic, not to scale. The spring stretch is exaggerated.</figcaption>
     </figure>
+  </div>
+</section>
+
+<!-- GEOID (Part 5, chapter 4) -->
+<section id="geoid" class="band alt">
+  <div class="wrap">
+    <p class="eyebrow">3D &middot; Earth&rsquo;s gravity &ldquo;potato&rdquo;</p>
+    <h2>If gravity alone shaped the sea</h2>
+    <p class="lead">Because mass inside the Earth is uneven, a calm ocean would not settle into a perfect ellipsoid. It would sit higher where gravity is stronger and lower where it is weaker. That surface is the <b>geoid</b>. South of India it dips by about <span id="geoid-low" class="mono"></span>, the deepest hollow on the planet.</p>
+    <div class="panel globe-ui" id="geoid-ui">
+      <div class="toggles">
+        <button class="btn primary" id="geoid-explore">Explore in 3D (full screen)</button>
+        <button class="btn primary" id="geoid-close" hidden>&times; Close 3D view</button>
+        <span class="small muted">Drag sideways to turn. In full screen: drag any way, pinch or scroll to zoom.</span>
+      </div>
+      <div class="globe-stage" id="geoid-stage">
+        <canvas id="geoid-canvas" role="img" aria-label="Rotatable globe whose shape and colour show geoid height, with the Indian Ocean low marked"></canvas>
+        <span class="fly-label" id="geoid-lab-low"></span>
+        <div id="geoid-fallback" class="nodata dark" hidden><b>3D view unavailable</b><span>The numbers below still come from the same calculation.</span></div>
+        <p class="badge globe-badge" id="geoid-exag-out"></p>
+      </div>
+      <div class="legend"><canvas id="geoid-legend" width="300" height="14" aria-hidden="true"></canvas><div class="legend-ticks mono" id="geoid-legend-ticks"></div><p class="small muted">Geoid height in metres above (red) or below (blue) the reference ellipsoid</p></div>
+      <div class="controls">
+        <label for="geoid-exag" class="small" style="flex:0 0 auto">Exaggeration (1&times; to 10,000&times;)</label>
+        <input id="geoid-exag" type="range" min="0" max="4" step="0.001" value="3.699">
+      </div>
+    </div>
+    <p id="geoid-facts" style="margin-top:1rem"></p>
+    <details class="deeper">
+      <summary>Go deeper: how the geoid was computed, and what GRACE adds</summary>
+      <p>We take the spherical-harmonic coefficients of the EGM2008 gravity model from the ICGEM service at GFZ Potsdam and keep only degrees 2 to 60. After removing the field of the GRS80 reference ellipsoid, the disturbing potential <i>T</i> on the ellipsoid gives the geoid height by the Bruns formula:</p>
+      <div class="tex" data-tex="N = \frac{T}{\gamma},\qquad T=\frac{GM}{r}\sum_{n=2}^{60}\left(\frac{a}{r}\right)^{n}\sum_{m=0}^{n}\left(\Delta\bar C_{nm}\cos m\lambda+\bar S_{nm}\sin m\lambda\right)\bar P_{nm}(\sin\psi)"></div>
+      <p>The globe draws each point at radius 1 + (exaggeration &times; N &divide; 6371 km). At 1&times; the Earth looks perfectly round: about 105 m is nothing against 6371 km.</p>
+      <p>Limits: the model is cut at degree 60 (features smaller than about 300 km are missing), it is the tide-free version, and small corrections (degree-0 term, topography) are not applied. Model: Pavlis, Holmes, Kenyon &amp; Factor (2012), <a href="https://doi.org/10.1029/2011JB008916" rel="noopener">doi:10.1029/2011JB008916</a>.</p>
+      <p><b>What GRACE adds:</b> this shape is the long-term average. GRACE and GRACE-FO measure how it changes from month to month as water moves, and those changes are what the rest of this page is about.</p>
+    </details>
   </div>
 </section>
 

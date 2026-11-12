@@ -47,6 +47,14 @@ export function columnHeightUnits(anomalyCm: number, kmPerCm: number): number {
   return (Math.max(0, COLUMN_BASE_CM + anomalyCm) * kmPerCm) / R_EARTH_KM;
 }
 
+/**
+ * Radius (Earth radius = 1) at which the geoid globe draws a point whose geoid height is
+ * hMetres, for a given exaggeration factor: 1 + exaggeration * h / R, with R = 6371 km.
+ */
+export function geoidRadius(hMetres: number, exaggeration: number): number {
+  return 1 + (exaggeration * hMetres) / 6371000;
+}
+
 /** Water-table change (m) from a groundwater storage change (cm): dh = dGWS / Sy. */
 export function waterTableChange(dGwsCm: number, sy: number): number {
   return dGwsCm / 100 / sy;

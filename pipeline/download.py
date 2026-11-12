@@ -6,6 +6,7 @@
     python pipeline/download.py jpl          # JPL mascons (needs login)
     python pipeline/download.py gldas        # GLDAS Noah, display box only (needs login)
     python pipeline/download.py gldas_india  # GLDAS Noah, all of India, for the 3D view
+    python pipeline/download.py geoid        # EGM2008 gravity model (low degrees) from ICGEM
     python pipeline/download.py all
 
 Credentials are never written into this code, the logs or Git. earthaccess stores
@@ -175,10 +176,55 @@ def gldas_india():
     gldas(box=C.INDIA_BOX, subdir="gldas_india", key="gldas_noah_india")
 
 
+def geoid(nmax=None):
+    """EGM2008 gravity model from ICGEM (GFZ). The full file goes to degree 2190 and is
+    very large, so we read it as a stream and keep only the header and the coefficients
+    up to GEOID_NMAX. The kept numbers are copied unchanged."""
+    nmax = nmax or C.GEOID_NMAX
+    d = C.RAW / "geoid"; d.mkdir(parents=True, exist_ok=True)
+    dest = d / f"EGM2008_to_degree_{nmax}.gfc"
+    if not dest.exists():
+        print(f"  {C.EGM2008_URL}")
+        req = urllib.request.Request(C.EGM2008_URL, headers={"User-Agent": "Mozilla/5.0"})
+        kept, header_done, n_coef = [], False, 0
+        with urllib.request.urlopen(req, timeout=120) as r:
+            for raw in r:
+                line = raw.decode("ascii", errors="replace")
+                if not header_done:
+                    kept.append(line)
+                    if line.startswith("end_of_head"):
+                        header_done = True
+                    continue
+                parts = line.split()
+                if len(parts) >= 5 and parts[0].startswith("gfc"):
+                    if int(parts[1]) <= nmax:
+                        kept.append(line); n_coef += 1
+                    elif int(parts[1]) > nmax + 2:
+                        break   # file is ordered by degree; stop reading
+        expected = (nmax + 1) * (nmax + 2) // 2
+        if n_coef < expected - 4:
+            raise SystemExit(f"Only {n_coef} coefficients read (expected about {expected}). Stopping.")
+        dest.write_text("".join(kept))
+    head = {}
+    for line in dest.read_text().splitlines():
+        if line.startswith("end_of_head"):
+            break
+        p = line.split()
+        if len(p) >= 2 and p[0] in ("modelname", "earth_gravity_constant", "radius", "max_degree", "tide_system", "errors", "norm"):
+            head[p[0]] = p[1]
+    record("geoid_model", {
+        "model": "EGM2008", "source": C.EGM2008_URL, "service": "ICGEM, GFZ Potsdam",
+        "citation": "Pavlis, Holmes, Kenyon & Factor (2012), J. Geophys. Res. 117, B04406, doi:10.1029/2011JB008916",
+        "header": head, "kept_up_to_degree": nmax, "file": dest.name, "sha256": sha256(dest),
+        "download_date": today()})
+    print("Geoid model done:", dest.name, head)
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     steps = {"login": [login], "csr": [csr], "boundaries": [boundaries], "jpl": [jpl],
-             "gldas": [gldas], "gldas_india": [gldas_india], "all": [csr, boundaries, jpl, gldas, gldas_india]}
+             "gldas": [gldas], "gldas_india": [gldas_india], "geoid": [geoid],
+             "all": [csr, boundaries, jpl, gldas, gldas_india, geoid]}
     if cmd not in steps:
         raise SystemExit(__doc__)
     for f in steps[cmd]:

@@ -76,5 +76,24 @@
     "last_file": "GLDAS_NOAH025_M.A202607.021.nc4",
     "n_months": 292,
     "download_date": "2026-11-11"
+  },
+  "geoid_model": {
+    "model": "EGM2008",
+    "source": "https://icgem.gfz.de/getmodel/gfc/c50128797a9cb62e936337c890e4425f03f0461d7329b09a8cc8561504465340/EGM2008.gfc",
+    "service": "ICGEM, GFZ Potsdam",
+    "citation": "Pavlis, Holmes, Kenyon & Factor (2012), J. Geophys. Res. 117, B04406, doi:10.1029/2011JB008916",
+    "header": {
+      "modelname": "EGM2008",
+      "earth_gravity_constant": "0.3986004415E+15",
+      "radius": "0.63781363E+07",
+      "max_degree": "2190",
+      "errors": "calibrated",
+      "norm": "fully_normalized",
+      "tide_system": "tide_free"
+    },
+    "kept_up_to_degree": 60,
+    "file": "EGM2008_to_degree_60.gfc",
+    "sha256": "a273869ca5c7baeb5e5d7be73451a4809bb82d16e60c31fb4137c84281a0aa2c",
+    "download_date": "2026-11-12"
   }
 }

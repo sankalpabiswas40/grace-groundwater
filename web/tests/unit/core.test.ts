@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calendarMonths, decodeFrames, decodeInt8, evalFit, makeFrames, makeIndia3D, type Grid } from '../../src/data';
-import { bouguerMicroGal, columnHeightUnits, COLUMN_BASE_CM, G, orbitalSpeed, rangeChange, subsolarPoint, waterTableChange } from '../../src/physics';
+import { bouguerMicroGal, columnHeightUnits, COLUMN_BASE_CM, G, geoidRadius, orbitalSpeed, rangeChange, subsolarPoint, waterTableChange } from '../../src/physics';
 
 describe('data loader', () => {
   it('decodes Int16 millimetres to cm and maps the sentinel to NaN', () => {
@@ -85,6 +85,12 @@ describe('physics', () => {
     expect(columnHeightUnits(-60, 8)).toBe(0);
     expect(columnHeightUnits(-90, 8)).toBe(0); // never negative
     expect(columnHeightUnits(5, 20) / columnHeightUnits(5, 10)).toBeCloseTo(2, 12);
+  });
+  it('geoid globe radius matches the displayed exaggeration', () => {
+    expect(geoidRadius(0, 5000)).toBe(1);
+    expect(geoidRadius(-100, 1)).toBeCloseTo(1 - 100 / 6371000, 12); // true scale: invisible
+    expect(geoidRadius(-100, 10000)).toBeCloseTo(1 - 1000 / 6371, 12); // 100 m drawn as 1000 km
+    expect((geoidRadius(80, 5000) - 1) / (geoidRadius(80, 1000) - 1)).toBeCloseTo(5, 9);
   });
   it('water-table conversion dh = dGWS / Sy', () => {
     expect(waterTableChange(-12, 0.12)).toBeCloseTo(-1, 12);
