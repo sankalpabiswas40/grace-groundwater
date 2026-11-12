@@ -31,3 +31,4 @@
 - Hero satellites now use NASA's official GRACE-FO 3D model (compressed from 7 MB to 254 KB), flying facing each other as the real pair does.
 - Added an A1 print poster built from the real data (poster/poster_A1.pdf, poster_A1_300dpi.png, poster_preview.jpg) with the five authors and the QR code.
   Rebuild with: npm run build, npm run preview, then node scripts/make-poster.mjs (inside web).
+- The site now always opens at the top: the browser no longer restores an old scroll position, and a refresh drops any #section left in the address. Fresh links that name a section still open there.

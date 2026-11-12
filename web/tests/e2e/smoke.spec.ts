@@ -199,3 +199,19 @@ test('underground: water-table change equals GWS / Sy from the real series', asy
   expect(await overflow(page)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
+
+test('opens at the top, also after a refresh from a section link', async ({ page }) => {
+  await ready(page, '/?tier=static');
+  await page.waitForTimeout(2600);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  // a fresh section link still lands on its section
+  await ready(page, '/?tier=static#curve');
+  await page.waitForTimeout(2600);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+  // refreshing that page goes back to the top and drops the #section
+  await page.reload();
+  await page.waitForFunction(() => (window as unknown as { __ready?: boolean }).__ready === true);
+  await page.waitForTimeout(2600);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  expect(await page.evaluate(() => location.hash)).toBe('');
+});

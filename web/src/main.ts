@@ -21,6 +21,16 @@ const FACTS = [
 
 // ---------- theme
 const root = document.documentElement;
+// ---------- start position
+// Always open at the top. The browser must not restore an old scroll position, and a
+// refresh drops any #section left in the address by the menu. A fresh link that names a
+// section (for example .../#map) still opens at that section.
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+if (navEntry?.type === 'reload' && location.hash && location.hash !== '#poster') history.replaceState(null, '', location.pathname + location.search);
+const startAtTop = location.hash.length <= 1 || location.hash === '#home';
+if (startAtTop) window.scrollTo(0, 0);
+
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) root.dataset.theme = savedTheme;
 document.getElementById('theme-toggle')!.addEventListener('click', () => {
@@ -146,7 +156,9 @@ async function boot() {
   checkPoster();
   // deep links: layout shifts while lazy sections load, so re-anchor a few times
   const anchor = () => {
-    if (location.hash.length > 1 && location.hash !== '#poster' && !userScrolled) document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'auto' });
+    if (userScrolled) return;
+    if (startAtTop) return; // nothing moves the page once restoration is off
+    if (location.hash !== '#poster') document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: 'auto' });
   };
   let userScrolled = false;
   ['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((ev) => window.addEventListener(ev, () => { userScrolled = true; }, { once: true, passive: true }));
