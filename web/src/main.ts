@@ -147,6 +147,10 @@ async function boot() {
     try { await (await import('./columns')).initColumns(tier); }
     catch (e) { console.warn('3D columns unavailable', e); document.getElementById('globe-fallback')!.hidden = false; }
   });
+  lazy('#inside', async () => {
+    try { await (await import('./inside')).initInside(tier); }
+    catch (e) { console.warn('inside view unavailable', e); document.getElementById('inside-fallback')!.hidden = false; }
+  });
   lazy('#geoid', async () => {
     try { await (await import('./geoid')).initGeoid(tier); }
     catch (e) { console.warn('geoid view unavailable', e); document.getElementById('geoid-fallback')!.hidden = false; }

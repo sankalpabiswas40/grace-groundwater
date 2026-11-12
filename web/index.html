@@ -24,7 +24,7 @@
 <header class="topbar" id="topbar">
   <a class="brand" href="#home" aria-label="Top of page">GRACE <span>&middot; NW India</span></a>
   <nav aria-label="Sections">
-    <a href="#gravity">Gravity</a><a href="#geoid">Geoid</a><a href="#satellites">Satellites</a><a href="#method">Method</a>
+    <a href="#gravity">Gravity</a><a href="#geoid">Geoid</a><a href="#satellites">Satellites</a><a href="#inside">Inside</a><a href="#method">Method</a>
     <a href="#globe">3D</a><a href="#map">Map</a><a href="#curve">Trend</a><a href="#underground">Underground</a><a href="#why">Why</a><a href="#methods">Methods</a>
   </nav>
   <div class="tools">
@@ -178,6 +178,44 @@
         <figcaption class="badge" id="sat-badge">Schematic, not to scale. Point-mass, straight-line model.</figcaption>
       </figure>
     </div>
+  </div>
+</section>
+
+<!-- INSIDE GRACE-FO -->
+<section id="inside" class="band">
+  <div class="wrap">
+    <p class="eyebrow">3D &middot; The spacecraft</p>
+    <h2>Inside GRACE-FO</h2>
+    <p class="lead">Each satellite is about the size of a small car: 3.1 m long, 1.9 m wide at the base and 0.8 m high, with a mass of 600 kg. There is no telescope and no camera pointed at the ground. The whole satellite is the instrument. Tap it to see what is packed inside.</p>
+    <div class="panel globe-ui" id="inside-ui">
+      <div class="toggles">
+        <button class="btn primary" id="inside-toggle" aria-pressed="false">Take it apart</button>
+        <button class="btn" id="inside-explore">Explore in 3D (full screen)</button>
+        <button class="btn primary" id="inside-close" hidden>&times; Close 3D view</button>
+      </div>
+      <div class="inside-grid">
+        <div class="globe-stage inside-stage" id="inside-stage">
+          <canvas id="inside-canvas" role="img" aria-label="3D model of a GRACE-FO satellite that opens to show its instruments"></canvas>
+          <span class="fly-label" id="inside-label"></span>
+          <div id="inside-fallback" class="nodata dark" hidden><b>3D view unavailable</b><span>Use the list to read what each unit does.</span></div>
+        </div>
+        <div class="inside-side">
+          <div class="card" id="inside-card" aria-live="polite"></div>
+          <div id="inside-list" class="inside-list"></div>
+        </div>
+      </div>
+      <p class="small muted inside-credit">3D reconstruction based on the Airbus DS layout diagram and the dimensions in NASA/JPL&rsquo;s GRACE-FO press kit. Outer shell: NASA/JPL-Caltech model.</p>
+    </div>
+    <details class="deeper">
+      <summary>Go deeper: how this model was made and how exact it is</summary>
+      <ul>
+        <li><b>Outside:</b> NASA&rsquo;s own 3D model of GRACE-FO, scaled to the published length of 3.123 m.</li>
+        <li><b>Inside:</b> the position and footprint of each unit are traced from the labelled layout diagram by Airbus DS (the builder) in the NASA/JPL press kit, and scaled to the published dimensions: 3.123 m long, 1.943 m wide at the bottom, 0.69 m wide at the top, 0.78 m high, 600.2 kg.</li>
+        <li><b>Estimated:</b> the diagram is a top view, so the heights and detailed shapes of the units are our estimates. The laser retro-reflector is placed on the underside as the press kit describes, but its exact position is not given. Thrusters, GPS antennas and the six mass-trim mechanisms are not drawn because no source shows where they sit.</li>
+        <li><b>Descriptions:</b> what each unit does, and who built it, are taken from the same press kit and its diagram labels.</li>
+      </ul>
+      <p>Source: <a href="https://www.jpl.nasa.gov/news/press_kits/grace-fo/mission/spacecraft/" rel="noopener">NASA/JPL GRACE-FO press kit: spacecraft and instruments</a>.</p>
+    </details>
   </div>
 </section>
 

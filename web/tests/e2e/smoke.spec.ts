@@ -246,3 +246,33 @@ test('geoid globe: numbers from the data file, exaggeration label matches applie
   expect(await overflow(page)).toBeLessThanOrEqual(1);
   expect(errors).toEqual([]);
 });
+
+test('inside GRACE-FO: opens, parts are listed, a part card shows its source', async ({ page }, info) => {
+  const errors = watchErrors(page);
+  await ready(page, '/?tier=lite');
+  await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await expect(page.locator('#inside-list .chip').first()).toBeVisible({ timeout: 20000 });
+  const n = await page.locator('#inside-list .chip').count();
+  expect(n).toBeGreaterThan(20);
+  await page.waitForFunction(() => (window as unknown as { __inside?: { parts: number } }).__inside !== undefined, null, { timeout: 30000 });
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-closed.png` });
+  await page.locator('#inside-toggle').click();
+  await expect(page.locator('#inside-toggle')).toHaveText('Put it back together');
+  await page.waitForTimeout(2600);
+  await page.locator('#inside-list .chip', { hasText: 'Accelerometer' }).first().click();
+  await expect(page.locator('#inside-card')).toContainText('centre of gravity');
+  await expect(page.locator('#inside-card')).toContainText('ONERA');
+  await expect(page.locator('#inside-card a')).toHaveAttribute('href', /jpl\.nasa\.gov/);
+  const st = await page.evaluate(() => (window as unknown as { __inside: { open: boolean; parts: number; selected: string } }).__inside);
+  expect(st.open).toBe(true);
+  expect(st.parts).toBe(n);
+  expect(st.selected).toBe('acc');
+  await page.waitForTimeout(700);
+  await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+  await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-open.png` });
+  await page.locator('#inside-toggle').click();
+  await expect(page.locator('#inside-toggle')).toHaveText('Take it apart');
+  expect(await overflow(page)).toBeLessThanOrEqual(1);
+  expect(errors).toEqual([]);
+});
