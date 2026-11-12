@@ -102,6 +102,8 @@ test('satellite fly-over responds to scrolling', async ({ page }, info) => {
   const h = await page.evaluate(() => document.getElementById('satellites')!.offsetHeight - innerHeight);
   await page.evaluate(([t, hh]) => window.scrollTo(0, t + hh * 0.5), [top, h]);
   await page.waitForTimeout(1200);
+  await expect(page.locator('#fly-stage')).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __flyover?: boolean }).__flyover)).toBe(true);
   const mid = parseFloat((await page.locator('#sat-val').textContent())!);
   expect(mid).toBeGreaterThan(2);
   await page.screenshot({ path: `${SHOTS}/${info.project.name}-satellites-mid.png` });

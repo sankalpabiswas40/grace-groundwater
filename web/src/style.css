@@ -268,3 +268,8 @@ figure svg, figure canvas, .ug-stage { border-radius: 3px; }
 .flow li { border-radius: 4px; }
 details.deeper > summary { font-weight: 600; }
 .chart text, #popup-svg text, #globe-popup-svg text, .svg-lab { font-family: var(--mono); }
+.fly-stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: #06101f; border-radius: 3px; overflow: hidden; }
+#fly-canvas { width: 100%; height: 100%; display: block; }
+.fly-label { position: absolute; left: 0; top: 0; font: 600 .78rem var(--sans); color: #e8eef6; text-shadow: 0 1px 4px #000, 0 0 2px #000; pointer-events: none; white-space: nowrap; will-change: transform; }
+.fly-label.mass { color: #7fd0ee; }
+@media (max-width: 899px) { .fly-stage { aspect-ratio: 16 / 11; } }

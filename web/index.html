@@ -133,8 +133,13 @@
         </details>
       </div>
       <figure class="panel">
+        <div class="fly-stage" id="fly-stage" hidden>
+          <canvas id="fly-canvas" role="img" aria-label="3D view of the two GRACE-FO satellites flying over a glowing mass beneath north India"></canvas>
+          <span class="fly-label" id="fly-lab-lead">leader</span><span class="fly-label" id="fly-lab-trail">follower</span>
+          <span class="fly-label mass" id="fly-lab-mass">extra mass</span>
+        </div>
         <canvas id="sat-canvas" width="800" height="560" role="img" aria-label="Animation of two satellites passing over an extra mass, with a graph of the change in their separation"></canvas>
-        <figcaption class="badge">Schematic, not to scale. Point-mass, straight-line model.</figcaption>
+        <figcaption class="badge" id="sat-badge">Schematic, not to scale. Point-mass, straight-line model.</figcaption>
       </figure>
     </div>
   </div>

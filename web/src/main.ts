@@ -214,7 +214,19 @@ async function renderTex() {
 }
 
 async function initSats() {
-  satH = initSatellites();
+  if (tier !== 'static') {
+    // 3D fly-over above, graph below; fall back to the flat diagram if 3D fails
+    try {
+      const fly = await (await import('./flyover')).initFlyover(tier);
+      document.getElementById('fly-stage')!.hidden = false;
+      document.getElementById('sat-badge')!.textContent =
+        'Altitude (500 km) and separation (220 km) are to scale. Spacecraft size, the change in separation, the glow and the pull lines are schematic and hugely exaggerated. Model: NASA/JPL-Caltech.';
+      satH = initSatellites({ graphOnly: true, onState: fly.update });
+    } catch (e) {
+      console.warn('3D fly-over unavailable, using the flat diagram', e);
+      satH = initSatellites();
+    }
+  } else satH = initSatellites();
   window.addEventListener('themechange', () => satH?.setProgress(lastP));
   if (tier === 'static' || reduced) { lastP = 0.5; satH.setProgress(0.5); document.getElementById('sat-hint')!.textContent = 'Static view: the pair is shown directly above the mass.'; return; }
   const [{ gsap }, { ScrollTrigger }] = await Promise.all([import('gsap'), import('gsap/ScrollTrigger')]);

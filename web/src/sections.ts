@@ -35,9 +35,13 @@ const L_SEP = 220e3; // m, NASA: "about 137 miles (220 km) apart"
 const X_FAR = 1800e3;
 
 export interface SatHandle { setProgress(p: number): void; }
+/** What the 3D fly-over needs to mirror the diagram: position (m), mass (Gt), range change (m) and its share of the largest possible. */
+export interface SatState { p: number; x: number; xFar: number; massGt: number; d: number; dFrac: number; }
 
-export function initSatellites(): SatHandle {
+export function initSatellites(opts: { graphOnly?: boolean; onState?: (s: SatState) => void } = {}): SatHandle {
+  const graphOnly = !!opts.graphOnly;
   const canvas = document.getElementById('sat-canvas') as HTMLCanvasElement;
+  if (graphOnly) canvas.height = 300; // the 3D scene sits above; this canvas only holds the graph
   const ctx = canvas.getContext('2d')!;
   const slider = document.getElementById('sat-mass') as HTMLInputElement;
   const v = orbitalSpeed(H_ORBIT);
@@ -55,7 +59,11 @@ export function initSatellites(): SatHandle {
     const ink = css('--ink') || '#111', muted = css('--muted') || '#666', accent = css('--accent') || '#06c', line = css('--line') || '#ccc';
     ctx.clearRect(0, 0, W, Hh);
     // --- upper scene
-    const sceneH = 280, groundY = 215;
+    const sceneH = graphOnly ? 0 : 280, groundY = 215;
+    const x = -X_FAR + 2 * X_FAR * p; // m
+    const d = rangeChangeRel(x, M, H_ORBIT, L_SEP, v, X_FAR);
+    const dMax = rangeChangeRel(0, 50e12, H_ORBIT, L_SEP, v, X_FAR);
+    if (!graphOnly) {
     const sky = ctx.createLinearGradient(0, 0, 0, groundY);
     sky.addColorStop(0, '#06101f'); sky.addColorStop(1, '#17335a');
     ctx.fillStyle = sky; ctx.fillRect(0, 0, W, groundY);
@@ -70,9 +78,6 @@ export function initSatellites(): SatHandle {
     ctx.fillStyle = '#fff'; ctx.font = font(20, 'system-ui', '600'); ctx.textAlign = 'center';
     ctx.fillText('extra mass (water)', mx, sceneH - 8);
     // satellites
-    const x = -X_FAR + 2 * X_FAR * p; // m
-    const d = rangeChangeRel(x, M, H_ORBIT, L_SEP, v, X_FAR);
-    const dMax = rangeChangeRel(0, 50e12, H_ORBIT, L_SEP, v, X_FAR);
     const px = (xm: number) => W / 2 + (xm / X_FAR) * (W / 2 - 40);
     const sepPx = (L_SEP / X_FAR) * (W / 2 - 40) + (d / dMax) * 70; // exaggerated on screen
     const cx = px(x), sy = 70;
@@ -92,6 +97,7 @@ export function initSatellites(): SatHandle {
     sat(trail, 'follower', 'right'); sat(lead, 'leader', 'left');
     ctx.fillStyle = '#b9c8db'; ctx.font = font(17, 'ui-monospace, monospace'); ctx.textAlign = 'right';
     ctx.fillText('direction of flight →', W - 14, 16 + 12 * fs);
+    }
     // --- graph
     const gx0 = 70 + 26 * fs, gx1 = W - 20, gy0 = sceneH + 26, gy1 = Hh - 30 - 26 * fs;
     ctx.fillStyle = css('--card') || '#fff'; ctx.fillRect(0, sceneH, W, Hh - sceneH);
@@ -119,6 +125,7 @@ export function initSatellites(): SatHandle {
     ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(gx(x), gy(d * 1e6), 7, 0, 7); ctx.fill();
     ctx.fillStyle = ink;
     document.getElementById('sat-val')!.textContent = fmt(d * 1e6, 1);
+    opts.onState?.({ p, x, xFar: X_FAR, massGt: +slider.value, d, dFrac: d / dMax });
   }
   slider.addEventListener('input', draw);
   new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
