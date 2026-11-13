@@ -40,3 +40,6 @@
 - Inside GRACE-FO rebuilt with a staged opening: the camera pushes in, the shell unlatches and splits into panels that swing open, a light sweeps the platform, units lift out in order, and the camera pulls back. Scrolling plays it; the button and taps still work.
   Once open: microwave rings from the horn, the laser beam through the bench and triple mirror, a floating proof mass, star-camera view cones and gas puffs. Added shadows (Full quality), panel detail, cable looms, stars and the Earth below, focus-on-part camera moves and small diagrams in the part cards.
 - Fixed a layout bug where the 3D stage of that section kept growing taller on wide screens.
+- Realistic Earth shared by the first screen, the fly-over and Inside GRACE-FO: NASA cloud imagery drifting slowly with shadows, a sun glint on the oceans, mountain relief, and air that is blue by day and orange along the sunset line. New NASA images (clouds, elevation, ocean depth) are recorded in provenance.json.
+- Inside GRACE-FO made more physical: no bounces or twists, side panels swing slowly on hinges with struts, units rise straight up on guide rails, one hard Sun plus blue light from the Earth below, crinkled gold foil, soft bloom on laptops, a gently floating camera, and much fainter signal effects.
+- Fixed a start-up error where a texture could arrive before the scene was ready.

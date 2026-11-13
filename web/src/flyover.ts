@@ -6,6 +6,7 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { url } from './data';
+import { createEarth, earthTexture } from './earth';
 import { latLonToVec } from './physics';
 import type { SatState } from './sections';
 
@@ -33,14 +34,15 @@ export async function initFlyover(tier: 'full' | 'lite'): Promise<FlyHandle> {
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const [tex, gltf] = await Promise.all([
-    new THREE.TextureLoader().loadAsync(url(tier === 'full' ? 'textures/day_4096.jpg' : 'textures/day_2048.jpg')),
+    earthTexture(tier === 'full' ? 'day_4096.jpg' : 'day_2048.jpg'),
     loader.loadAsync(url('models/grace-fo.glb')),
   ]);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = tier === 'full' ? 8 : 2;
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 1.6;
-  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1, 160, 80), new THREE.MeshBasicMaterial({ map: tex, color: 0xb9c0cc })));
+  // Daylight is placed over the pass so the ground is visible; it is not the real Sun position here.
+  const planet = createEarth({ day: tex, segments: 192, sun: new THREE.Vector3(...latLonToVec(18, 100)) });
+  scene.add(planet.group);
+  void planet.loadExtras(tier);
   scene.add(new THREE.AmbientLight(0xffffff, 1.2));
   const key = new THREE.DirectionalLight(0xffffff, 2.6);
   scene.add(key);
@@ -169,6 +171,7 @@ export async function initFlyover(tier: 'full' | 'lite'): Promise<FlyHandle> {
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
     if (!visible) return;
     tPulse += dt;
+    planet.update(dt);
     frame(); dirty = false;
   };
   resize();

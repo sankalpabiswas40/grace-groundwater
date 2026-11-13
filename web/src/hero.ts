@@ -3,6 +3,7 @@
 import * as THREE from 'three';
 import { latLonToVec, subsolarPoint } from './physics';
 import { url } from './data';
+import { createEarth } from './earth';
 
 export type Tier = 'full' | 'lite' | 'static';
 
@@ -12,45 +13,6 @@ export interface HeroHandle {
   frameMs(): number;
   setActive(on: boolean): void;
 }
-
-const EARTH_VERT = /* glsl */ `
-varying vec2 vUv; varying vec3 vN; varying vec3 vW;
-void main(){ vUv = uv; vN = normalize(mat3(modelMatrix) * normal);
-  vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
-
-const EARTH_FRAG = /* glsl */ `
-uniform sampler2D dayTex; uniform sampler2D nightTex; uniform vec3 sunDir;
-varying vec2 vUv; varying vec3 vN; varying vec3 vW;
-void main(){
-  vec3 n = normalize(vN); vec3 v = normalize(cameraPosition - vW);
-  float d = dot(n, sunDir);
-  float day = smoothstep(-0.10, 0.18, d);
-  vec3 dc = texture2D(dayTex, vUv).rgb;
-  vec3 nc = texture2D(nightTex, vUv).rgb;
-  float ocean = smoothstep(0.02, 0.10, dc.b - max(dc.r, dc.g) * 0.92);
-  vec3 h = normalize(sunDir + v);
-  float spec = pow(max(dot(n, h), 0.0), 60.0) * ocean * 0.55;
-  vec3 lit = dc * (0.10 + 1.05 * max(d, 0.0)) + vec3(spec);
-  vec3 dark = dc * 0.035 + nc * vec3(1.25, 1.1, 0.85);
-  vec3 col = mix(dark, lit, day);
-  float rim = pow(1.0 - max(dot(n, v), 0.0), 3.2);
-  col += rim * vec3(0.25, 0.52, 1.0) * (0.25 + 0.75 * smoothstep(-0.25, 0.3, d));
-  float tw = smoothstep(-0.12, 0.02, d) * (1.0 - smoothstep(0.02, 0.22, d));
-  col += tw * vec3(0.35, 0.16, 0.05) * 0.35;
-  gl_FragColor = vec4(col, 1.0);
-}`;
-
-const ATMO_VERT = /* glsl */ `
-varying vec3 vN; varying vec3 vW;
-void main(){ vN = normalize(mat3(modelMatrix) * normal); vec4 w = modelMatrix * vec4(position,1.0); vW = w.xyz;
-  gl_Position = projectionMatrix * viewMatrix * w; }`;
-const ATMO_FRAG = /* glsl */ `
-uniform vec3 sunDir; varying vec3 vN; varying vec3 vW;
-void main(){ vec3 n = normalize(vN); vec3 v = normalize(cameraPosition - vW);
-  float f = clamp(-dot(n, v), 0.0, 1.0);            // 0 at the outer limb, 0.29 at Earth's edge
-  float edge = pow(clamp(f / 0.29, 0.0, 1.0), 2.5);
-  float sun = 0.15 + 0.85 * smoothstep(-0.3, 0.4, dot(normalize(vW), sunDir));
-  gl_FragColor = vec4(vec3(0.30, 0.60, 1.0) * edge * sun * 1.3, 1.0); }`;
 
 function makeSatellite(): THREE.Group {
   // Schematic model: trapezoid body with solar cells on the sloping sides.
@@ -91,31 +53,26 @@ export function initHero(
   const mkTex = (img: HTMLImageElement) => {
     const t = new THREE.Texture(img);
     t.anisotropy = tier === 'full' ? 8 : 2;
+    t.wrapS = THREE.RepeatWrapping;
     t.minFilter = THREE.LinearMipmapLinearFilter;
     t.generateMipmaps = true;
     t.needsUpdate = true;
     return t;
   };
-  const sun = new THREE.Vector3();
+  const seg = tier === 'full' ? 128 : 72;
+  const planet = createEarth({ day: mkTex(images.day), night: mkTex(images.night), segments: seg });
+  scene.add(planet.group);
+  const sun = planet.sun;
+  // ?sun=lat,lon overrides the real Sun position (used only for checking the day side; the badge then says so)
+  const forced = new URLSearchParams(location.search).get('sun')?.split(',').map(Number);
   const setSun = () => {
-    const s = subsolarPoint(new Date());
+    const s = forced && forced.length === 2 && forced.every(Number.isFinite) ? { lat: forced[0], lon: forced[1] } : subsolarPoint(new Date());
     sun.set(...latLonToVec(s.lat, s.lon)).normalize();
   };
+  if (forced) { const b = document.querySelector('.hero-badge'); if (b) b.textContent = 'Sun position set manually for this view (not the real time). Satellite size and orbit not to scale.'; }
   setSun();
-
-  const seg = tier === 'full' ? 96 : 56;
-  const earthMat = new THREE.ShaderMaterial({
-    vertexShader: EARTH_VERT, fragmentShader: EARTH_FRAG,
-    uniforms: { dayTex: { value: mkTex(images.day) }, nightTex: { value: mkTex(images.night) }, sunDir: { value: sun } },
-  });
-  const earth = new THREE.Mesh(new THREE.SphereGeometry(1, seg, seg / 2), earthMat);
-  scene.add(earth);
-
-  const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(1.045, seg, seg / 2),
-    new THREE.ShaderMaterial({ vertexShader: ATMO_VERT, fragmentShader: ATMO_FRAG, uniforms: { sunDir: { value: sun } }, side: THREE.BackSide, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
-  );
-  scene.add(atmo);
+  // clouds, ocean glint and relief arrive after the first picture is already on screen
+  void planet.loadExtras(tier);
 
   // stars (procedural)
   const nStars = tier === 'full' ? 2600 : 900;
@@ -235,6 +192,7 @@ export function initHero(
     p.setXYZ(1, sats[1].position.x, sats[1].position.y, sats[1].position.z);
     p.needsUpdate = true;
     (link.material as THREE.LineBasicMaterial).opacity = 0.55 + 0.35 * Math.sin(t * 6);
+    planet.update(dt);
     renderer.render(scene, camera);
   };
   raf = requestAnimationFrame(frame);

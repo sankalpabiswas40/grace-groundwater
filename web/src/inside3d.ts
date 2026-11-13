@@ -8,12 +8,13 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { url } from './data';
+import { createEarth, earthTexture, type Earth } from './earth';
 import { GROUPS, MATS, PARTS, SAT_DIMS, type Part } from './inside-data';
 
 export interface InsideScene { select(id: string | null): void; }
 interface Built { part: Part; obj: THREE.Group; home: THREE.Vector3; out: THREE.Vector3; line: THREE.Line; mats: { m: THREE.MeshStandardMaterial; base: THREE.Color }[] }
 
-const OPEN_SECONDS = 4.4;
+const OPEN_SECONDS = 5.6;
 
 export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null) => void): Promise<InsideScene> {
   const ui = document.getElementById('inside-ui')!, stage = document.getElementById('inside-stage')!;
@@ -29,22 +30,25 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
   renderer.setClearColor(0x050a14, 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
   renderer.localClippingEnabled = true;
-  if (full) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+  if (full) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap; }
   const scene = new THREE.Scene();
+  let dirty = true; // declared early: texture callbacks may fire before the rest of the scene is built
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 400);
   const [{ GLTFLoader }, { MeshoptDecoder }, { RoomEnvironment }, { gsap }, { ScrollTrigger }] = await Promise.all([
     import('three/examples/jsm/loaders/GLTFLoader.js'), import('three/examples/jsm/libs/meshopt_decoder.module.js'),
     import('three/examples/jsm/environments/RoomEnvironment.js'), import('gsap'), import('gsap/ScrollTrigger'),
   ]);
   gsap.registerPlugin(ScrollTrigger);
+  gsap.ticker.lagSmoothing(0); // keep animations on real time even when frames are slow
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.03).texture;
-  scene.environmentIntensity = 0.85;
-  const keyL = new THREE.DirectionalLight(0xfff2dc, 2.6); scene.add(keyL);
+  scene.environmentIntensity = 0.32;
+  const SUN_DIR = new THREE.Vector3(0.55, 0.62, 0.56).normalize();
+  const keyL = new THREE.DirectionalLight(0xfff6e8, 3.6); keyL.position.copy(SUN_DIR).multiplyScalar(9); scene.add(keyL);
+  scene.add(new THREE.HemisphereLight(0x0b1220, 0x5f8fd8, 1.25)); // earthshine from below
   if (full) {
     keyL.castShadow = true; keyL.shadow.mapSize.set(1024, 1024); keyL.shadow.bias = -0.0006; keyL.shadow.radius = 5;
     const sc = keyL.shadow.camera; sc.left = -3.2; sc.right = 3.2; sc.top = 3.2; sc.bottom = -3.2; sc.near = 1; sc.far = 24;
   }
-  const rim = new THREE.DirectionalLight(0x86b4ff, 1.3); rim.position.set(-4, 2.5, -5); scene.add(rim);
   const sweep = new THREE.PointLight(0xaee4ff, 0, 3.4, 1.6); sweep.position.set(0, 0.25, 1.7); scene.add(sweep);
 
   // ---- backdrop: stars and the Earth far below
@@ -57,19 +61,34 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
     }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     scene.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 1.5, sizeAttenuation: false, vertexColors: true })));
-    new THREE.TextureLoader().loadAsync(url('textures/day_2048.jpg')).then((t) => {
-      t.colorSpace = THREE.SRGBColorSpace;
-      const earth = new THREE.Mesh(new THREE.SphereGeometry(60, 96, 48), new THREE.MeshLambertMaterial({ map: t }));
-      earth.position.set(0, -66, -10); earth.rotation.set(0.5, 2.6, 0.2); scene.add(earth);
-      const halo = new THREE.Mesh(new THREE.SphereGeometry(61, 64, 32), new THREE.MeshBasicMaterial({ color: 0x4f9dff, transparent: true, opacity: 0.1, side: THREE.BackSide, depthWrite: false }));
-      halo.position.copy(earth.position); scene.add(halo);
+    earthTexture('day_2048.jpg').then((t) => {
+      planet = createEarth({ day: t, radius: 60, segments: 128, sun: SUN_DIR, linearOut: !!composer, dim: composer ? 0.44 : 0.8 }); // kept below the glare of the spacecraft
+      planet.group.position.set(0, -66, -10); planet.group.rotation.set(0.5, 2.6, 0.2);
+      scene.add(planet.group);
+      void planet.loadExtras(tier, () => { dirty = true; });
       dirty = true;
     }).catch(() => undefined);
   }
 
+  let planet: Earth | null = null;
+  // soft bloom on the brightest highlights and the laser (Full quality only)
+  let composer: { render(): void; setSize(w: number, h: number): void } | null = null;
+  if (full) {
+    try {
+      const [{ EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([
+        import('three/examples/jsm/postprocessing/EffectComposer.js'), import('three/examples/jsm/postprocessing/RenderPass.js'),
+        import('three/examples/jsm/postprocessing/UnrealBloomPass.js'), import('three/examples/jsm/postprocessing/OutputPass.js'),
+      ]);
+      const ec = new EffectComposer(renderer);
+      ec.addPass(new RenderPass(scene, camera));
+      ec.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0.5, 0.98));
+      ec.addPass(new OutputPass());
+      composer = ec;
+      renderer.setClearColor(0x000103, 1); // the post-processing chain brightens the background, so start from near black
+    } catch (e) { console.warn('bloom unavailable', e); composer = null; }
+  }
   const root = new THREE.Group(); scene.add(root);
   const D = SAT_DIMS, FLOOR = -D.height / 2;
-  let dirty = true;
 
   // ---- surface detail shared by the boxes: panel lines and bolts
   const detail = (() => {
@@ -82,8 +101,23 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
     c.fillStyle = 'rgba(0,0,0,.18)'; for (let i = 0; i < 6; i++) c.fillRect(30 + i * 18, 118, 10, 46);
     const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
   })();
+  const foil = (() => {
+    const N = 128, cv = document.createElement('canvas'); cv.width = cv.height = N; const c = cv.getContext('2d')!;
+    const img = c.createImageData(N, N); let sd = 5; const rnd = () => ((sd = (sd * 1664525 + 1013904223) >>> 0) / 4294967296);
+    // a few octaves of blocky noise give the creased look of multilayer insulation
+    const oct = [4, 9, 19, 37].map((n) => ({ n, v: Array.from({ length: n * n }, rnd) }));
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      let h = 0, w = 0.5;
+      for (const o of oct) { h += w * o.v[Math.floor((y / N) * o.n) * o.n + Math.floor((x / N) * o.n)]; w *= 0.55; }
+      const g = Math.max(0, Math.min(255, Math.round(h * 230))); const i = (y * N + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = g; img.data[i + 3] = 255;
+    }
+    c.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 2); return t;
+  })();
   const baseMat = (k: keyof typeof MATS, withDetail = false) => {
     const m = new THREE.MeshStandardMaterial(MATS[k]);
+    if (k === 'gold') { m.bumpMap = foil; m.bumpScale = 1.4; m.roughness = 0.42; }
     if (withDetail) { m.map = detail; if (full) { m.bumpMap = detail; m.bumpScale = 0.6; } }
     return m;
   };
@@ -131,7 +165,7 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
   // ---- units
   const xOf = (u: number) => u * 0.8, zOf = (v: number) => (0.5 - v) * (D.length - 0.25);
   const built: Built[] = [];
-  const leaderMat = new THREE.LineBasicMaterial({ color: 0x7fd0ee, transparent: true, opacity: 0 });
+  const leaderMat = new THREE.LineBasicMaterial({ color: 0xaab4c2, transparent: true, opacity: 0 });
   let proof: THREE.Mesh | null = null;
   const camCones: THREE.Mesh[] = [];
   for (const p of PARTS) {
@@ -198,7 +232,7 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
     const rank = GROUPS.indexOf(p.group);
     const out = p.shape === 'reflector' ? home.clone().add(new THREE.Vector3(0, -0.75, 0))
       : p.shape === 'horn' ? home.clone().add(new THREE.Vector3(0, 0.2, 0.6))
-      : new THREE.Vector3(home.x * 1.55, home.y + 0.6 + rank * 0.19, home.z * 1.18);
+      : new THREE.Vector3(home.x, home.y + 0.5 + rank * 0.2, home.z);
     g.position.copy(home); root.add(g);
     const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([home.clone(), home.clone()]), leaderMat); root.add(line);
     const mats: Built['mats'] = [];
@@ -220,6 +254,18 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
     });
   }
 
+  // hinges along both long edges, and thin struts that hold the opened side panels
+  const hingeMat = new THREE.MeshStandardMaterial({ color: 0x8b929c, metalness: 0.9, roughness: 0.35 });
+  for (const sx of [-1, 1]) for (const z of [-1.0, 0, 1.0]) {
+    const hg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.16, 12), hingeMat); hg.rotation.x = Math.PI / 2;
+    hg.position.set(sx * (halfW - 0.02), FLOOR + 0.03, z); hg.castShadow = full; root.add(hg);
+  }
+  const strutMat = new THREE.LineBasicMaterial({ color: 0xc3cad4, transparent: true, opacity: 0 });
+  const struts = ([['port', -1, 0.8], ['port', -1, -0.8], ['star', 1, 0.8], ['star', 1, -0.8]] as ['port' | 'star', number, number][]).map(([key, sx, z]) => {
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), strutMat); root.add(line);
+    return { key, from: new THREE.Vector3(sx * (halfW - 0.25), FLOOR + 0.04, z), local: new THREE.Vector3(sx * 0.55, 0.08, z), line };
+  });
+
   // ---- live effects (fade in once the satellite is open)
   const fxState = { a: 0 };
   const ringMat = () => new THREE.MeshBasicMaterial({ color: 0x7fd0ee, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
@@ -238,27 +284,23 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
   });
 
   // ---- the opening timeline (progress 0 = closed, 1 = open)
-  const cam = { dist: 7, ty: 0.1, spin: 0.16 };
+  const cam = { dist: 7, ty: 0.1, spin: 0.16, pitch: 0.4 };
   const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.inOut' } });
   const T = OPEN_SECONDS;
   tl.to(cam, { dist: 4.7, ty: 0.05, spin: 0.02, duration: 0.7 }, 0);
-  tl.to(root.position, { y: 0.035, duration: 0.07, ease: 'power1.out' }, 0.62).to(root.position, { y: 0, duration: 0.3, ease: 'elastic.out(1.2, 0.3)' }, 0.69); // unlatch jolt
+  tl.to(root.position, { y: 0.012, duration: 0.09, ease: 'power1.out' }, 0.62).to(root.position, { y: 0, duration: 0.35, ease: 'power2.out' }, 0.71); // latches release
   if (pieces.port) {
-    tl.to(pieces.front.pivot.position, { z: 1.25, y: 0.12, duration: 0.9 }, 0.75);
-    tl.to(pieces.rear.pivot.position, { z: -1.05, y: 0.12, duration: 0.9 }, 0.8);
-    tl.to(pieces.port.pivot.rotation, { z: 1.2, duration: 1.15, ease: 'back.out(1.1)' }, 0.95);
-    tl.to(pieces.port.pivot.position, { x: -halfW - 0.3, duration: 1.0 }, 0.95);
-    tl.to(pieces.star.pivot.rotation, { z: -1.2, duration: 1.15, ease: 'back.out(1.1)' }, 1.05);
-    tl.to(pieces.star.pivot.position, { x: halfW + 0.3, duration: 1.0 }, 1.05);
+    tl.to(pieces.front.pivot.position, { z: 1.25, duration: 1.2, ease: 'power2.inOut' }, 0.75);
+    tl.to(pieces.rear.pivot.position, { z: -1.05, duration: 1.2, ease: 'power2.inOut' }, 0.85);
+    tl.to(pieces.port.pivot.rotation, { z: 1.15, duration: 1.7, ease: 'power2.inOut' }, 0.95);
+    tl.to(pieces.star.pivot.rotation, { z: -1.15, duration: 1.7, ease: 'power2.inOut' }, 1.2);
+    tl.to(strutMat, { opacity: 0.9, duration: 0.5 }, 1.6);
   }
-  tl.to(sweep, { intensity: 16, duration: 0.25, ease: 'power1.in' }, 1.5).to(sweep.position, { z: -1.7, duration: 0.8, ease: 'none' }, 1.5).to(sweep, { intensity: 0, duration: 0.3 }, 2.15);
   [...built].sort((a, b) => a.part.v - b.part.v).forEach((b, k) => {
-    const t0 = 1.75 + k * 0.058;
-    tl.to(b.obj.position, { x: b.out.x, y: b.out.y, z: b.out.z, duration: 0.85, ease: 'back.out(1.6)' }, t0);
-    tl.to(b.obj.rotation, { y: (k % 2 ? 0.55 : -0.55), duration: 0.4, ease: 'power2.out' }, t0).to(b.obj.rotation, { y: 0, duration: 0.7, ease: 'elastic.out(1, 0.55)' }, t0 + 0.4);
+    tl.to(b.obj.position, { x: b.out.x, y: b.out.y, z: b.out.z, duration: 1.15, ease: 'power2.inOut' }, 2.2 + k * 0.06);
   });
-  tl.to(leaderMat, { opacity: 0.5, duration: 0.5 }, 2.6);
-  tl.to(cam, { dist: 10.6, ty: 0.55, spin: 0.09, duration: 1.5 }, 2.5);
+  tl.to(leaderMat, { opacity: 0.45, duration: 0.6 }, 2.6);
+  tl.to(cam, { dist: 10.2, ty: 0.5, spin: 0.06, pitch: 0.62, duration: 2.2, ease: 'power1.inOut' }, 2.9); // rise to look down into the open body
   tl.to(fxState, { a: 1, duration: 0.5, ease: 'none' }, T - 0.5);
   tl.duration(); // build
 
@@ -291,12 +333,11 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
     gsap.killTweensOf(focus);
     if (b) gsap.to(focus, { x: b.out.x, y: b.out.y, z: b.out.z, k: 1, duration: reduced ? 0.01 : 0.9, ease: 'power3.inOut', onUpdate: () => { dirty = true; } });
     else gsap.to(focus, { k: 0, duration: reduced ? 0.01 : 0.7, ease: 'power2.inOut', onUpdate: () => { dirty = true; } });
-    if (b && !reduced) gsap.fromTo(b.obj.scale, { x: 1.22, y: 1.22, z: 1.22 }, { x: 1, y: 1, z: 1, duration: 0.6, ease: 'elastic.out(1, 0.5)' });
     publish(); dirty = true;
   }
 
   // ---- camera: turntable in the page, free orbit in full screen
-  let yaw = 0.75, exploring = false, idle = 0, dragX: number | null = null, portraitK = 1;
+  let yaw = 0.75, exploring = false, idle = 0, dragX: number | null = null, portraitK = 1, tt = 0;
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true; controls.enablePan = false; controls.minDistance = 1.6; controls.maxDistance = 16; controls.enabled = false;
   controls.addEventListener('change', () => { dirty = true; });
@@ -305,7 +346,8 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
   const setCam = () => {
     const d = (cam.dist + (4.3 - cam.dist) * focus.k) * portraitK;
     tgt.set(focus.x * focus.k, cam.ty + (focus.y - cam.ty) * focus.k, focus.z * focus.k);
-    camera.position.set(tgt.x + Math.sin(yaw) * d, tgt.y + d * 0.4, tgt.z + Math.cos(yaw) * d);
+    const fl = reduced ? 0 : 1;
+    camera.position.set(tgt.x + Math.sin(yaw) * d + 0.06 * fl * Math.sin(tt * 0.31), tgt.y + d * cam.pitch + 0.05 * fl * Math.sin(tt * 0.23 + 1.3), tgt.z + Math.cos(yaw) * d + 0.06 * fl * Math.cos(tt * 0.27));
     camera.lookAt(tgt);
   };
   let downX = 0, downY = 0;
@@ -342,7 +384,7 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
   const resize = () => {
     const w = stage.clientWidth, h = stage.clientHeight;
     if (!w || !h) return;
-    renderer.setSize(w, h, false);
+    renderer.setSize(w, h, false); composer?.setSize(w, h);
     camera.aspect = w / h; portraitK = w < h ? Math.min(1.9, 0.86 / Math.max(0.45, w / h)) : 1; camera.updateProjectionMatrix();
     lineMats.forEach((m) => m.resolution.set(w, h)); dirty = true;
   };
@@ -366,8 +408,8 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
   }
 
   // ---- frame loop
-  const q = new THREE.Vector3(), a3 = new THREE.Vector3(), b3 = new THREE.Vector3(), lightDir = new THREE.Vector3();
-  let last = performance.now(), tt = 0;
+  const q = new THREE.Vector3(), a3 = new THREE.Vector3(), b3 = new THREE.Vector3();
+  let last = performance.now();
   const loop = (now: number) => {
     requestAnimationFrame(loop);
     const dt = Math.min(0.1, (now - last) / 1000); last = now;
@@ -379,37 +421,37 @@ export async function buildInside(tier: 'full' | 'lite', onPick: (p: Part | null
       if (idle > 0) idle -= dt; else if (!reduced && dragX === null && focus.k < 0.5) { yaw += dt * cam.spin; dirty = true; }
       setCam();
     }
-    if (fx > 0.01 && !reduced) dirty = true;
+    if (!reduced) dirty = true;
     if (tl.progress() > 0 && tl.progress() < 1) dirty = true;
     if (!dirty) return;
-    // key light circles slowly so metal and foil catch moving highlights
-    lightDir.set(Math.sin(tt * 0.18 + 0.6) * 5, 6.5, Math.cos(tt * 0.18 + 0.6) * 5);
-    keyL.position.copy(lightDir);
+    if (planet) { planet.group.rotation.y += dt * 0.004; planet.update(dt); }
+    struts.forEach((st) => { const pc = pieces[st.key]; if (!pc) return; const at = st.line.geometry.attributes.position as THREE.BufferAttribute; q.copy(st.local).applyMatrix4(pc.holder.matrix).applyMatrix4(pc.pivot.matrix); at.setXYZ(0, st.from.x, st.from.y, st.from.z); at.setXYZ(1, q.x, q.y, q.z); at.needsUpdate = true; });
     built.forEach((b) => { const at = b.line.geometry.attributes.position as THREE.BufferAttribute; at.setXYZ(1, b.obj.position.x, b.obj.position.y, b.obj.position.z); at.needsUpdate = true; });
     // effects
     const horn = byId('horn').obj.position;
     rings.forEach((r, k) => {
       const f = (tt * 0.55 + k / 3) % 1;
       r.position.set(horn.x, horn.y, horn.z + 0.2 + f * 1.7); r.scale.setScalar(1 + f * 2.4);
-      (r.material as THREE.MeshBasicMaterial).opacity = fx * (1 - f) * 0.75;
+      (r.material as THREE.MeshBasicMaterial).opacity = fx * (1 - f) * 0.22;
     });
     const tma = byId('tma').obj.position, bench = byId('bench').obj.position, laser = byId('laser').obj.position;
     a3.set(tma.x + 0.6, tma.y, tma.z); b3.set(tma.x - 0.6, tma.y, tma.z);
     beamGeo.setPositions([laser.x, laser.y, laser.z, bench.x, bench.y, bench.z, a3.x, a3.y, a3.z, b3.x, b3.y, b3.z, b3.x, b3.y, b3.z + 3.4]);
     beamInGeo.setPositions([a3.x, a3.y, a3.z + 3.4, a3.x, a3.y, a3.z, a3.x, a3.y, a3.z]);
-    beamMat.opacity = fx * (0.78 + 0.22 * Math.sin(tt * 11));
+    beamMat.opacity = fx * 0.8;
     if (proof) { proof.position.x = 0.007 * Math.sin(tt * 7.3) * fx; proof.position.z = 0.007 * Math.cos(tt * 5.1) * fx; proof.rotation.y = tt * 0.6; }
-    camCones.forEach((c, k) => { (c.material as THREE.MeshBasicMaterial).opacity = fx * (0.07 + 0.035 * Math.sin(tt * 1.3 + k * 2)); });
+    camCones.forEach((c) => { (c.material as THREE.MeshBasicMaterial).opacity = fx * 0.011; });
     puffs.forEach((pf) => {
       pf.next -= dt;
-      if (pf.next <= 0 && fx > 0.9) { pf.t = 0; pf.next = 1.4 + Math.random() * 3.2; }
+      if (pf.next <= 0 && fx > 0.9) { pf.t = 0; pf.next = 5 + Math.random() * 9; }
       pf.t += dt;
       const f = Math.min(1, pf.t / 0.55);
-      pf.sp.material.opacity = f < 1 ? fx * 0.6 * (1 - f) : 0;
-      pf.sp.scale.setScalar(0.06 + f * 0.34); pf.sp.position.x = pf.sx * (halfW + 0.02 + f * 0.2);
+      pf.sp.material.opacity = f < 1 ? fx * 0.28 * (1 - f) : 0;
+      pf.sp.scale.setScalar(0.04 + f * 0.2); pf.sp.position.x = pf.sx * (halfW + 0.02 + f * 0.2);
     });
     updateClips();
-    renderer.render(scene, camera); dirty = false;
+    if (composer) composer.render(); else renderer.render(scene, camera);
+    dirty = false;
     publish();
     if (selected) {
       q.copy(selected.obj.position).add(new THREE.Vector3(0, 0.32, 0)).project(camera);

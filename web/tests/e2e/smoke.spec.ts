@@ -262,7 +262,7 @@ test('geoid globe: numbers from the data file, exaggeration label matches applie
 });
 
 test('inside GRACE-FO: scrolling opens it, parts are listed, a part card shows its source', async ({ page }, info) => {
-  test.setTimeout(150000); // the scene is heavy for the software-rendered test browser
+  test.setTimeout(300000); // the scene is heavy for the software-rendered test browser, which animates far slower than a real GPU
   const errors = watchErrors(page);
   await ready(page, '/?tier=lite');
   await page.locator('#inside').scrollIntoViewIfNeeded();
@@ -274,7 +274,7 @@ test('inside GRACE-FO: scrolling opens it, parts are listed, a part card shows i
   // scrolling the model to the middle of the screen plays the opening
   await page.locator('#inside-stage').evaluate((el) => el.scrollIntoView({ block: 'center' }));
   await expect(page.locator('#inside-toggle')).toHaveText('Put it back together', { timeout: 30000 });
-  await page.waitForFunction(() => (window as unknown as { __inside: { progress: number } }).__inside.progress > 0.95, null, { timeout: 30000 });
+  await page.waitForFunction(() => (window as unknown as { __inside: { progress: number } }).__inside.progress > 0.95, null, { timeout: 120000 });
   await page.screenshot({ path: `${SHOTS}/${info.project.name}-inside-open.png` });
   await page.locator('#inside-list .chip', { hasText: 'Accelerometer' }).first().click();
   await expect(page.locator('#inside-card')).toContainText('centre of gravity');
@@ -292,7 +292,7 @@ test('inside GRACE-FO: scrolling opens it, parts are listed, a part card shows i
   await page.locator('#inside-toggle').click();
   await expect(page.locator('#inside-toggle')).toHaveText('Take it apart');
   // closing is animated; wait for it to finish (slow in the software-rendered test browser)
-  await page.waitForFunction(() => (window as unknown as { __inside: { progress: number } }).__inside.progress < 0.05, null, { timeout: 30000 });
+  await page.waitForFunction(() => (window as unknown as { __inside: { progress: number } }).__inside.progress < 0.05, null, { timeout: 150000 });
   st = await state();
   expect(st.open).toBe(false);
   expect(st.progress).toBeLessThan(0.05);

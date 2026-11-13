@@ -95,5 +95,23 @@
     "file": "EGM2008_to_degree_60.gfc",
     "sha256": "a273869ca5c7baeb5e5d7be73451a4809bb82d16e60c31fb4137c84281a0aa2c",
     "download_date": "2026-11-12"
+  },
+  "earth_textures": {
+    "credit": "NASA Earth Observatory (Blue Marble, Black Marble) and GEBCO via NASA's Blue Marble Next Generation topography and bathymetry",
+    "base": "https://assets.science.nasa.gov/content/dam/science/esd/eo/",
+    "files": {
+      "clouds": "content-feature/bluemarble/images/cloud_combined_2048.jpg",
+      "elevation": "images/bmng/topography/gebco_08_rev_elev_5400x2700.jpg",
+      "bathymetry": "images/bmng/bathymetry/gebco_08_rev_bath_5400x2700.jpg",
+      "day": "images/bmng/bmng-topography-bathymetry/december/world.topo.bathy.200412.3x5400x2700.jpg",
+      "night": "images/imagerecords/144000/144898/BlackMarble_2016_3km.jpg"
+    },
+    "derived": "clouds_*.jpg = greyscale cloud image; relief_*.jpg red = land elevation (for shading), green = ocean mask from the bathymetry map",
+    "sha256": {
+      "cloud_combined_2048.jpg": "daddaad84d7a33bbbc86cdda3f591099f57cee8607b7bcf3b67eb7e4f7a1c793",
+      "gebco_08_rev_elev_5400x2700.jpg": "97828a87bcb6549a527232455e478c5f9e4556f761b37d620a46446da17593ab",
+      "gebco_08_rev_bath_5400x2700.jpg": "d2e5de09ccd154fdde4f8c45473f311b12230b0d998a19b0cdc042833f0e963e"
+    },
+    "download_date": "2026-11-13"
   }
 }
